@@ -9,12 +9,15 @@
  * file that was distributed with this source code.
  */
 
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\HttpKernel\Kernel;
+
 /**
  * Class AppKernel.
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class AppKernel
+class AppKernel extends Kernel
 {
     /**
      * {@inheritdoc}
@@ -26,6 +29,7 @@ class AppKernel
             new Dunglas\ApiBundle\Tests\Behat\TestBundle\TestBundle(),
             new Dunglas\ApiBundle\Tests\Behat\TestBundle\TestBundle(),
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
+            new Fidry\LoopBackApiBundle\AppBundle\AppBundle(),
             new Fidry\LoopBackApiBundle\LoopBackApiBundle(),
         ];
     }
