@@ -9,15 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Fidry\LoopBackApiBundle;
+namespace Fidry\LoopBackApiBundle\AppBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
- * LoopBackApiBundle.
+ * AppBundle.
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class LoopBackApiBundle extends Bundle
+class AppBundle extends Bundle
 {
 }
