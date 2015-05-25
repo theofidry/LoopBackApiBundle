@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="loopback_api.filter.search_filter"
+                 parent="api.doctrine.orm.search_filter"
+                 class="Fidry\LoopBackApiBundle\Filter\SearchFilter"
+                 public="false"
+                 abstract="true">
+            <call method="initParameter">
+                 <argument>%loopback.parameter.search_filter%</argument>
+            </call>
+        </service>
+
+        <service id="loopback_api.filter.order_filter"
+                 parent="api.doctrine.orm.order_filter"
+                 class="Fidry\LoopBackApiBundle\Filter\OrderFilter"
+                 public="false"
+                 abstract="true">
+            <call method="initParameter">
+                 <argument>%loopback.parameter.order_filter%</argument>
+            </call>
+        </service>
+    </services>
+
+</container>
