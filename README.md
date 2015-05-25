@@ -1,5 +1,7 @@
 # LoopBackApiundle
 
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master)
+
 [LoopBack](http://loopback.io/) like Doctrine ORM filters for [DunglasApiBundle](https://github.com/dunglas/DunglasApiBundle).
 
 **WARNING**: Work in Progress, not ready for production.
