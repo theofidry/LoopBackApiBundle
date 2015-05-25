@@ -15,7 +15,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
 use Dunglas\ApiBundle\Api\ResourceInterface;
-use Dunglas\ApiBundle\Doctrine\Orm\SearchFilter;
+use Dunglas\ApiBundle\Doctrine\Orm\SearchFilter as DunglasSearchFilter;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -25,7 +25,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class SearchFilter extends SearchFilter
+class SearchFilter extends DunglasSearchFilter
 {
     use FilterTrait;
 
