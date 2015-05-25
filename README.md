@@ -1,6 +1,6 @@
 # LoopBackApiundle
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master)
+[![Build Status](https://travis-ci.org/theofidry/LoopBackApiBundle.svg?branch=master)](https://travis-ci.org/theofidry/LoopBackApiBundle) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/e7cbcdb9-f024-43e0-b7ba-7a002949aa98/big.png)](https://insight.sensiolabs.com/projects/e7cbcdb9-f024-43e0-b7ba-7a002949aa98)
 
 [LoopBack](http://loopback.io/) like Doctrine ORM filters for [DunglasApiBundle](https://github.com/dunglas/DunglasApiBundle).
 
