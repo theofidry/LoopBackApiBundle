@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Fidry\LoopBackApiBundle\AppBundle;
+namespace Fidry\LoopBackApiBundle\Test\TestBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -18,6 +18,6 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class AppBundle extends Bundle
+class TestBundle extends Bundle
 {
 }

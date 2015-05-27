@@ -1,9 +1,13 @@
 default:
 
+    autoload:
+        - %paths.base%/features/bootstrap/
+
     suites:
         default:
             contexts:
-                - FeatureContext: { doctrine: "@doctrine" }
+                - FeatureContext:
+                      - @doctrine
                 - Behat\MinkExtension\Context\MinkContext
                 - Sanpi\Behatch\Context\RestContext
                 - Sanpi\Behatch\Context\JsonContext
@@ -13,10 +17,10 @@ default:
             kernel:
                 env:       test
                 debug:     true
-                path:      features/fixtures/SymfonyApp/app/AppKernel.php
-                bootstrap: features/fixtures/SymfonyApp/app/bootstrap.cache.php
+                path:      features/fixtures/SymfonyApp/AppKernel.php
+                bootstrap: features/fixtures/SymfonyApp/bootstrap.cache.php
         Behat\MinkExtension:
-            base_url: "http://example.com/"
+            base_url: ~
             sessions:
                 default:
                     symfony2: ~

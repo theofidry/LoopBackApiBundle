@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Fidry\LoopBackApiBundle\AppBundle\Entity;
+namespace Fidry\LoopBackApiBundle\Test\TestBundle\Entity;
 
 use Dunglas\ApiBundle\Annotation\Iri;
 use Doctrine\ORM\Mapping as ORM;
