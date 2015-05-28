@@ -25,7 +25,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class SearchFilter extends DunglasSearchFilter
+class WhereFilter extends DunglasSearchFilter
 {
     use FilterTrait;
 

@@ -32,9 +32,15 @@ url?filter[order][property]=<ASC|DESC>
 
 where `property` is the name of the property and `ASC`, `DESC` the order value (case insensitive). **The order of the order filters is important**: if we specify the filter `?order[name]=asc&order[id]=desc`, the result will be a collection ordered by `name` in ascending order and when some names are equal, ordered by `id` in descending order.
 
-Of course it does not matter if another filter type is inserted between two order filters.
+If there is an embedded relation and you want to apply the ordering a property of the other entity:
+
+```
+url?filter[order][property.propOfEntity]=<ASC|DESC>
+```
 
 ### Where filters
+
+Note: the where filter is based on Dunglas' SearchFilter. Dunglas' bundle uses `search` for this kind of filter like Django whereas Loopback uses `where`. As this bundle is more similar to LoopBack for filter syntax, I decided to keep up with it.
 
 Where filters are used to filter a collection by applying a mask (making match some properties).
 
@@ -43,7 +49,13 @@ Syntax:
 url?filter[where][property][op]=value
 ```
 
-where `property` is the name of the property, `op` the operator and `value` takes the value wished (case sensitive). The value is by default a `string`. If you wish to test a `boolean` value, test it against `0` (`false`) or `1` (`true`) - of course if the property is a number, it will be tested against a number and not against a boolean value! A null value is equaled to `0` (`false`).
+where `property` is the name of the property, `op` the operator and `value` takes the value wished (case sensitive). The value is by default a `string`. If you wish to test a `boolean` value, test it against `0` (`false`) or `1` (`true`) - of course if the property is a number, it will be tested against a number and not against a boolean value!
+
+#### Search on embedded relation property
+
+```
+url?filter[where][property.propOfEntity][op]=value
+```
 
 #### Boolean values
 
@@ -81,7 +93,6 @@ Example: `url?filter[where][property][op]=` or `url?filter[where][property][op]`
 
 | Operator | Description |
 |----------|:-------------|
-| and | Logical AND operator |
 | or | Logical OR operator |
 | gt, gte | Numerical greater than (>); greater than or equal (>=). Valid only for numerical and date values. For Geopoint values, the units are in miles by default. See Geopoint for more information. |
 | lt, lte | Numerical less than (<); less than or equal (<=). Valid only for numerical and date values. For geolocation values, the units are in miles by default. See Geopoint for more information. |
@@ -89,48 +100,61 @@ Example: `url?filter[where][property][op]=` or `url?filter[where][property][op]`
 | neq | Not equal (!=) |
 | like, nlike | LIKE / NOT LIKE operators for use with regular expressions. The regular expression format depends on the backend data source. |
 
-##### `and`/`or`
+##### `or`
 
-Example: find all entities for which `title` equal to `'My Post'` and `content` to `Hello`.
+###### Example #1
 
-REST syntax:
+Example: `field1 === 'val1' || field2 === 'val2'`
 
-`?filter[where][and][0][title]=My%20Post&filter[where][and][1][content]=Hello`
+Syntax: `?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2`
 
-And behind the scene will generate the following array for the `query parameter`:
 
-```php
-[ 'filter' => [
-    'where' => [
-        'and' => [
-            'title'   => 'My Post',
-            'content' => 'Hello'
-        ]
-    ]
-]
-````
-
-Note: the `[0]` and `[1]` are not mandatory. You can use `[]`. However, if you do so, the order does matter.
-
-**Example**: logical expression: `(field1 === 'foo' && field2 === 'bar') || 'field1' === 'morefoo')`.
-
-REST syntax:
-
-`?filter[where][or][0][and][0][field1]=foo&filter[where][or][0][and][1][field2]=bar&filter[where][or][1][field1]=morefoo`
+Which results in:
 
 ```php
 [ 'filter' => [
     'where' => [
         'or' => [
-            'and' => [
-                'field1' => 'foo',
-                'field2' => 'bar'
-            ],
-            'field1' => 'morefoo'
+            0 => [
+                'field1' => 'val1',
+                'field2' => 'val2'
+            ]
         ]
     ]
 ]
-````
+```
+
+###### Example #2
+
+Example: `( (field1 === 'val1' || field2 === 'val2') ) && ( (field3 === 'val3' || field4 === 'val4') )`
+
+Syntax:
+
+```
+?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2
+&filter[where][or][1][field3]=val3&filter[where][or][1][field4]=val4
+```
+
+Which results in:
+
+```php
+[ 'filter' => [
+    'where' => [
+        'or' => [
+            0 => [
+                'field1' => 'val1',
+                'field2' => 'val2'
+            ],
+            1 => [
+                'field1' => 'val1',
+                'field2' => 'val2'
+            ]
+        ]
+    ]
+]
+```
+
+Note: as you can see, between each vakye of the array `query['filter']['where']['or']`, a `and` is applied.
 
 ##### `gt(e)`/`lt(e)`
 
