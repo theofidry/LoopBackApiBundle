@@ -146,8 +146,8 @@ Which results in:
                 'field2' => 'val2'
             ],
             1 => [
-                'field1' => 'val1',
-                'field2' => 'val2'
+                'field3' => 'val3',
+                'field4' => 'val4'
             ]
         ]
     ]
@@ -169,6 +169,9 @@ The date value may be simplified. The format does not really matter but keep in 
 ##### `between`
 
 Example of between operator: `filter[where][price][between][0]=0&filter[where][price][between][1]=7`.
+
+Note: the keys `0` and `1` are optional, unlike the `or` operator, only two values are expected with `between`. It is
+ assumed that the first values is the "lower" one.
 
 ##### `like`/`nlike`
 

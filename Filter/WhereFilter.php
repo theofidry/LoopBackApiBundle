@@ -29,6 +29,17 @@ class WhereFilter extends DunglasSearchFilter
 {
     use FilterTrait;
 
+    const PARAMETER_OPERATOR_OR = 'or';
+    const PARAMETER_OPERATOR_GT = 'gt';
+    const PARAMETER_OPERATOR_GTE = 'gte';
+    const PARAMETER_OPERATOR_LT = 'lt';
+    const PARAMETER_OPERATOR_LTE = 'lte';
+    const PARAMETER_OPERATOR_BETWEEN = 'between';
+    const PARAMETER_OPERATOR_NEQ = 'neq';
+    const PARAMETER_OPERATOR_LIKE = 'like';
+    const PARAMETER_OPERATOR_NLIKE = 'nlike';
+    const PARAMETER_NULL_VALUE = 'null';
+
     /**
      * @var IriConverterInterface
      */
@@ -83,13 +94,117 @@ class WhereFilter extends DunglasSearchFilter
         $metadata = $this->getClassMetadata($resource);
         $fieldNames = array_flip($metadata->getFieldNames());
 
-        if (null !== $queryValues) {
-            foreach ($queryValues as $queryName => $queryValue) {
-                if (is_string($queryValue)) {
-                    $this->applyFilterOnStringValue($metadata, $fieldNames, $queryBuilder, $queryName, $queryValue);
+        /*
+         * TODO:
+         *
+         * Left to consider:
+         * - null values
+         * - empty values
+         * - @id values
+         */
+
+        foreach ($queryValues as $key => $value) {
+            if (self::PARAMETER_OPERATOR_OR === $key && is_array($value)) {
+                // or operator case
+                foreach ($value as $dataSet => $values) {
+                    $values = array_values($values);
+                    if (2 === count($values)) {
+                        /*
+                         * TODO
+                         *
+                         * if is array, get expression matching the operator cf what has been done in the second loop
+                         *
+                         * if is not array get expression for simple where
+                         *
+                         * apply orX for the two values
+                         *
+                         * qb: andWhere(orX)
+                         */
+                    }
+                }
+            } else {
+                // $key is a property
+                if (isset($fieldNames[$key])) {
+                    // entity has the property
+                    if (is_array($value)) {
+                        foreach ($value as $operator => $operand) {
+                            // Get expr for operator
+                            switch ($operator) {
+                                case self::PARAMETER_OPERATOR_GT:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop > $value
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_GTE:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop >= $value
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_LT:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop < $value
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_LTE:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop <= $value
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_BETWEEN:
+                                    $operand = array_values($operand);
+                                    if (2 === count($operand)) {
+                                        /*
+                                         * TODO:
+                                         *
+                                         * expr: andX(
+                                         *      expr of gte for $operand[0]
+                                         *      expr of lte for $operand[1]
+                                         * )
+                                         */
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_NEQ:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop != $value
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_LIKE:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop like $value
+                                    }
+                                    break;
+
+                                case self::PARAMETER_OPERATOR_NLIKE:
+                                    if (!is_array($value)) {
+                                        // TODO expr: prop nlike $value
+                                    }
+                                    break;
+                            }
+
+                            // TODO: qb: andWhere(expr)
+                        }
+                    } else {
+                        // simple where
+                        // TODO qb: andWhere(prop = $value)
+                    }
                 }
             }
         }
+
+//
+//        if (null !== $queryValues) {
+//            foreach ($queryValues as $queryName => $queryValue) {
+//                if (is_string($queryValue)) {
+//                    $this->applyFilterOnStringValue($metadata, $fieldNames, $queryBuilder, $queryName, $queryValue);
+//                }
+//            }
+//        }
 
         return $queryBuilder;
     }
