@@ -12,6 +12,7 @@
 namespace Fidry\LoopBackApiBundle\Filter;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
 use Dunglas\ApiBundle\Api\ResourceInterface;
@@ -38,6 +39,8 @@ class WhereFilter extends DunglasSearchFilter
     const PARAMETER_OPERATOR_NEQ = 'neq';
     const PARAMETER_OPERATOR_LIKE = 'like';
     const PARAMETER_OPERATOR_NLIKE = 'nlike';
+
+    const PARAMETER_ID_KEY = 'id';
     const PARAMETER_NULL_VALUE = 'null';
 
     /**
@@ -93,120 +96,189 @@ class WhereFilter extends DunglasSearchFilter
     {
         $metadata = $this->getClassMetadata($resource);
         $fieldNames = array_flip($metadata->getFieldNames());
+        $queryExpr = [];
 
         /*
          * TODO:
          *
          * Left to consider:
-         * - null values
          * - empty values
-         * - @id values
+         * - single/multiassociation values
+         * - embedded relation associations
          */
 
+        // Retrieve all doctrine query expressions
         foreach ($queryValues as $key => $value) {
             if (self::PARAMETER_OPERATOR_OR === $key && is_array($value)) {
-                // or operator case
-                foreach ($value as $dataSet => $values) {
-                    $values = array_values($values);
-                    if (2 === count($values)) {
-                        /*
-                         * TODO
-                         *
-                         * if is array, get expression matching the operator cf what has been done in the second loop
-                         *
-                         * if is not array get expression for simple where
-                         *
-                         * apply orX for the two values
-                         *
-                         * qb: andWhere(orX)
-                         */
+                /*
+                 * OR operator case
+                 *
+                 * At this point $dataSet is expected to equal to something like this:
+                 *
+                 * $value = [
+                 *    0 => [
+                 *        'property' => [
+                 *            'operator' => 'operand'
+                 *         ],
+                 *         'property' => value
+                 *    ],
+                 *    1 => [...],
+                 *    ...
+                 * ]
+                 */
+                foreach ($value as $dataSet) {
+                    // Expect $dataSet to be an array containing 2 parameters
+                    if (is_array($dataSet) && 2 === count($dataSet)) {
+                        $dataSet = array_values($dataSet);
+                        $queries = [];
+
+                        // Handle each "query" of $dataSet
+                        foreach ($dataSet as $property => $propValue) {
+                            // At this point $propValue may be either a value or an array (for operators)
+                            $expr = $this->handleFilter($queryBuilder, $fieldNames, $property, $propValue);
+                            if (null !== $expr) {
+                                $queries[] = $expr;
+                            }
+                        }
+
+                        if (2 === count($queries)) {
+                            $queryExpr[] = $queryBuilder->expr()->orX($queries[0], $queries[1]);
+                        }
                     }
                 }
             } else {
-                // $key is a property
-                if (isset($fieldNames[$key])) {
-                    // entity has the property
-                    if (is_array($value)) {
-                        foreach ($value as $operator => $operand) {
-                            // Get expr for operator
-                            switch ($operator) {
-                                case self::PARAMETER_OPERATOR_GT:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop > $value
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_GTE:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop >= $value
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_LT:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop < $value
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_LTE:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop <= $value
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_BETWEEN:
-                                    $operand = array_values($operand);
-                                    if (2 === count($operand)) {
-                                        /*
-                                         * TODO:
-                                         *
-                                         * expr: andX(
-                                         *      expr of gte for $operand[0]
-                                         *      expr of lte for $operand[1]
-                                         * )
-                                         */
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_NEQ:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop != $value
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_LIKE:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop like $value
-                                    }
-                                    break;
-
-                                case self::PARAMETER_OPERATOR_NLIKE:
-                                    if (!is_array($value)) {
-                                        // TODO expr: prop nlike $value
-                                    }
-                                    break;
-                            }
-
-                            // TODO: qb: andWhere(expr)
-                        }
-                    } else {
-                        // simple where
-                        // TODO qb: andWhere(prop = $value)
-                    }
-                }
+                $queryExpr[] = $this->handleFilter($queryBuilder, $fieldNames, $key, $value);
             }
         }
 
-//
-//        if (null !== $queryValues) {
-//            foreach ($queryValues as $queryName => $queryValue) {
-//                if (is_string($queryValue)) {
-//                    $this->applyFilterOnStringValue($metadata, $fieldNames, $queryBuilder, $queryName, $queryValue);
-//                }
-//            }
-//        }
+        foreach ($queryExpr as $expr) {
+            $queryBuilder->andWhere($expr);
+        }
 
         return $queryBuilder;
+    }
+
+    /**
+     * Handle the given filter. At this point, it's unclear if the value passed is the real value or an operator.
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param array        $fieldNames
+     * @param string       $property
+     * @param mixed        $value
+     *
+     * @return array
+     */
+    private function handleFilter(QueryBuilder $queryBuilder, array $fieldNames, $property, $value)
+    {
+        $queryExpr = [];
+
+        // $key is a property
+        if (isset($fieldNames[$property])) {
+            // Entity has the property
+            if (is_array($value)) {
+                foreach ($value as $operator => $operand) {
+                    // Case where there is an operator
+                    // The `between` operator is handled separately
+                    if (self::PARAMETER_OPERATOR_BETWEEN === $operator
+                        && is_array($operand)
+                        && 2 === count($operand)
+                    ) {
+                        $operand = array_values($operand);
+
+                        $query1 = $this->handleOperator($property, $operator, $operand[0]);
+                        $query2 = $this->handleOperator($property, $operator, $operand[1]);
+
+                        if (null !== $query1 && null !== $query2) {
+                            $queryExpr[] = $queryBuilder->expr()->andX($query1, $query2);
+                        }
+                    } else {
+                        $queryExpr[] = $this->handleOperator($property, $operator, $operand);
+                    }
+                }
+            } else {
+                // Simple where
+                if (self::PARAMETER_ID_KEY === $property) {
+                    $value = $this->getFilterValueFromUrl($value);
+                }
+                // TODO $queryExpr[] = expr(prop = $value)
+            }
+        } else {
+            // TODO: handle association
+        }
+
+        return $queryExpr;
+    }
+
+    /**
+     * Get the proper query expression for the set of data given.
+     *
+     * @param string       $property
+     * @param string       $operator
+     * @param string|array $value
+     *
+     * @return Expr|null
+     */
+    private function handleOperator($property, $operator, $value)
+    {
+        // Expect $operand to be a value
+        if (is_array($value)) {
+            return null;
+        }
+        $value = $this->normalizeValue($property, $value);
+
+        switch ($operator) {
+            case self::PARAMETER_OPERATOR_GT:
+                // TODO expr: prop > $operand
+                break;
+
+            case self::PARAMETER_OPERATOR_GTE:
+                // TODO expr: prop >= $operand
+                break;
+
+            case self::PARAMETER_OPERATOR_LT:
+                // TODO expr: prop < $operand
+                break;
+
+            case self::PARAMETER_OPERATOR_LTE:
+                // TODO expr: prop <= $operand
+                break;
+
+            case self::PARAMETER_OPERATOR_NEQ:
+                // TODO expr: prop != $operand
+                break;
+
+            case self::PARAMETER_OPERATOR_LIKE:
+                // TODO expr: prop like $operand
+                break;
+
+            case self::PARAMETER_OPERATOR_NLIKE:
+                // TODO expr: prop nlike $operand
+                break;
+        }
+
+        // TODO: return $expr;
+    }
+    
+    /**
+     * Normalize the value. If the key is an ID, get the real ID value. If is null, set the value to null. Otherwise
+     * return unchanged value.
+     *
+     * @param string $property
+     * @param string $value
+     *
+     * @return string|null
+     */
+    private function normalizeValue($property, $value)
+    {
+        if (self::PARAMETER_ID_KEY === $property) {
+            return $this->getFilterValueFromUrl($value);
+        }
+
+        if (self::PARAMETER_NULL_VALUE === $value) {
+            return null;
+        }
+
+        return $value;
     }
 
     /**

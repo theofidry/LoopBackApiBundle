@@ -16,7 +16,7 @@
   * [Date values](#date-values)
   * [Empty values](#empty-values)
   * [Operators](#operators)
-    * [and/or](#andor)
+    * [or](#or)
     * [gt(e)/lt(e)](#gtelte)
     * [between](#between)
     * [like/nlike](#likenlike)
@@ -106,7 +106,7 @@ Example: `url?filter[where][property][op]=` or `url?filter[where][property][op]`
 
 Example: `field1 === 'val1' || field2 === 'val2'`
 
-Syntax: `?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2`
+REST syntax: `?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2`
 
 
 Which results in:
@@ -128,7 +128,7 @@ Which results in:
 
 Example: `( (field1 === 'val1' || field2 === 'val2') ) && ( (field3 === 'val3' || field4 === 'val4') )`
 
-Syntax:
+REST syntax:
 
 ```
 ?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2
