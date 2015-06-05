@@ -11,8 +11,8 @@
 
 namespace Fidry\LoopBackApiBundle\Tests\Filter;
 
-use ApiBundle\Filter\OrderFilter;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Fidry\LoopBackApiBundle\Filter\OrderFilter;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -62,7 +62,8 @@ class OrderFilterTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [
-                Request::create('/api/dummies',
+                Request::create(
+                    '/api/dummies',
                     'GET',
                     [
                         'filter' => [

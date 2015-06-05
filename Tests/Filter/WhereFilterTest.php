@@ -12,11 +12,11 @@
 
 namespace Fidry\LoopBackApiBundle\Tests\Filter;
 
-use ApiBundle\Filter\WhereFilter;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityRepository;
 use Dunglas\ApiBundle\Api\IriConverter;
 use Dunglas\ApiBundle\Api\Resource;
+use Fidry\LoopBackApiBundle\Filter\WhereFilter;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -131,7 +131,8 @@ class WhereFilterTest extends KernelTestCase
     {
         return [
             [
-                Request::create('/api/dummies?filter[where][name]=test&filter[where][property]=whereValue',
+                Request::create(
+                    '/api/dummies?filter[where][name]=test&filter[where][property]=whereValue',
                     'GET',
                     [
                         'filter' => [
@@ -148,7 +149,8 @@ class WhereFilterTest extends KernelTestCase
                 ]
             ],
             [
-                Request::create('/api/dummies',
+                Request::create(
+                    '/api/dummies',
                     'GET',
                     [
                         'filter' => [
