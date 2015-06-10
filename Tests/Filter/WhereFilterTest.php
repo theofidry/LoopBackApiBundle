@@ -25,7 +25,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 /**
  * Class WhereFilter.
  *
- * @coversDefaultClass ApiBundle\Filter\WhereFilter
+ * @coversDefaultClass Fidry\LoopBackApiBundle\Filter\WhereFilter
  *
  * @author             Théo FIDRY <theo.fidry@gmail.com>
  */
@@ -76,33 +76,16 @@ class WhereFilterTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider requestProvider
-     * @covers       ::extractValues
-     *
-     * @param Request $request  Input request.
-     * @param array   $expected Expected array extracted from the request for this filter.
-     */
-    public function testExtractValues(Request $request, array $expected)
-    {
-        $filter = new WhereFilter($this->managerRegistry, $this->iriConverter, $this->propertyAccessor);
-        $filter->initParameter('where');
-        $actual = $filter->extractValues($request);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
      * @dataProvider filterProvider
      * @covers       ::apply
-     * @covers       ::applyFilter
      *
      * @param array|null $properties Properties on which the filter may be enabled.
-     * @param array      $query      Input query.
+     * @param string     $url        URL.
      * @param string     $expected   Expected DQL query.
      */
-    public function testWhereFilter($properties, array $query, $expected)
+    public function testFilter($properties, $url, $expected)
     {
-        $request = Request::create('/api/dummies', 'GET', $query);
+        $request = Request::create($url, 'GET');
         $filter = new WhereFilter($this->managerRegistry, $this->iriConverter, $this->propertyAccessor, $properties);
         $filter->initParameter('where');
         $queryBuilder = $this->getQueryBuilder();
@@ -123,53 +106,6 @@ class WhereFilterTest extends KernelTestCase
     }
 
     /**
-     * Provides requests from which the filter will be applied and the values used by the order filter.
-     *
-     * @return array
-     */
-    public function requestProvider()
-    {
-        return [
-            [
-                Request::create(
-                    '/api/dummies?filter[where][name]=test&filter[where][property]=whereValue',
-                    'GET',
-                    [
-                        'filter' => [
-                            'where' => [
-                                'name'     => 'test',
-                                'property' => 'whereValue'
-                            ]
-                        ]
-                    ]
-                ),
-                [
-                    'name'     => 'test',
-                    'property' => 'whereValue'
-                ]
-            ],
-            [
-                Request::create(
-                    '/api/dummies',
-                    'GET',
-                    [
-                        'filter' => [
-                            'where' => [
-                                'name'     => 'test',
-                                'property' => 'whereValue'
-                            ]
-                        ]
-                    ]
-                ),
-                [
-                    'name'     => 'test',
-                    'property' => 'whereValue'
-                ]
-            ]
-        ];
-    }
-
-    /**
      * Providers 3 parameters:
      *  - filter parameters.
      *  - properties to test. Keys are the property name. If the value is true, the filter should work on the property,
@@ -183,14 +119,7 @@ class WhereFilterTest extends KernelTestCase
         return [
             [
                 null,
-                [
-                    'filter' => [
-                        'where' => [
-                            'id'   => 'asc',
-                            'name' => 'desc'
-                        ]
-                    ],
-                ],
+                '/api/dummies?filter[where][name]=test',
                 "SELECT o FROM $this->entityClass o WHERE o.name = test"
             ],
         ];
