@@ -1,7 +1,6 @@
 default:
-
     autoload:
-        - %paths.base%/features/bootstrap/
+        - %paths.base%/Features/bootstrap/
 
     suites:
         default:
@@ -17,8 +16,8 @@ default:
             kernel:
                 env:       test
                 debug:     true
-                path:      features/fixtures/SymfonyApp/AppKernel.php
-                bootstrap: features/fixtures/SymfonyApp/autoload.php
+                path:      Features/fixtures/SymfonyApp/AppKernel.php
+                bootstrap: Features/fixtures/SymfonyApp/autoload.php
         Behat\MinkExtension:
             base_url: ~
             sessions:
