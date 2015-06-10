@@ -10,6 +10,7 @@
  */
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use Composer\Autoload\ClassLoader;
 
 date_default_timezone_set('UTC');
 

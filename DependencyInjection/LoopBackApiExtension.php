@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class DunglasApiExtension extends Extension
+class LoopBackApiExtension extends Extension
 {
     /**
      * {@inheritDoc}

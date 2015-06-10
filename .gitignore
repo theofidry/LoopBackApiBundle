@@ -1,2 +1,4 @@
 vendor/
 composer.lock
+features/fixtures/SymfonyApp/cache/*
+features/fixtures/SymfonyApp/logs/*
