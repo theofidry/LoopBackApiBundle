@@ -18,7 +18,7 @@ default:
                 env:       test
                 debug:     true
                 path:      features/fixtures/SymfonyApp/AppKernel.php
-                bootstrap: features/fixtures/SymfonyApp/bootstrap.cache.php
+                bootstrap: features/fixtures/SymfonyApp/autoload.php
         Behat\MinkExtension:
             base_url: ~
             sessions:
