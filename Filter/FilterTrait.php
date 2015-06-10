@@ -46,7 +46,7 @@ trait FilterTrait
      *
      * @return array|null
      */
-    public function extractValues(Request $request)
+    protected function extractProperties(Request $request)
     {
         $filter = $request->query->get('filter');
         if (null !== $filter && array_key_exists($this->parameter, $filter)) {

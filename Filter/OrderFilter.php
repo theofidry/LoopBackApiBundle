@@ -14,7 +14,6 @@ namespace Fidry\LoopBackApiBundle\Filter;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\ResourceInterface;
 use Dunglas\ApiBundle\Doctrine\Orm\Filter\OrderFilter as DunglasOrderFilter;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class OrderFilter.
@@ -29,14 +28,6 @@ class OrderFilter extends DunglasOrderFilter
      * @var array
      */
     private $properties;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder, Request $request)
-    {
-        $this->applyFilter($resource, $queryBuilder, $this->extractValues($request));
-    }
 
     /**
      * {@inheritdoc}
