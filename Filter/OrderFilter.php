@@ -25,11 +25,6 @@ class OrderFilter extends DunglasOrderFilter
     use FilterTrait;
 
     /**
-     * @var array
-     */
-    private $properties;
-
-    /**
      * {@inheritdoc}
      */
     public function getDescription(ResourceInterface $resource)

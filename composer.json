@@ -35,7 +35,7 @@
     "behatch/contexts": "dev-master#eef7ab39ca896796bf3ba25a0fa5a95f15276eb7",
     "friendsofsymfony/user-bundle": "dev-master",
     "phpspec/phpspec": "~2.0",
-    "phpunit/phpunit": "~4.6"
+    "phpunit/phpunit": "~4.7"
   },
   "autoload": {
     "psr-4": { "Fidry\\LoopBackApiBundle\\": "" }
