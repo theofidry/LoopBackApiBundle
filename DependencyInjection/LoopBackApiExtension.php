@@ -41,6 +41,9 @@ class LoopBackApiExtension extends Extension
         $loader->load('services.xml');
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getAlias()
     {
         return 'loopback_api';

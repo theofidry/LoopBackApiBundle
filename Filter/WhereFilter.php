@@ -16,7 +16,7 @@ use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
 use Dunglas\ApiBundle\Api\ResourceInterface;
-use Dunglas\ApiBundle\Doctrine\Orm\Filter\SearchFilter as DunglasSearchFilter;
+use Dunglas\ApiBundle\Doctrine\Orm\Filter\AbstractFilter;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -26,7 +26,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class WhereFilter extends DunglasSearchFilter
+class WhereFilter extends AbstractFilter
 {
     use FilterTrait;
 
@@ -54,11 +54,6 @@ class WhereFilter extends DunglasSearchFilter
     private $propertyAccessor;
 
     /**
-     * @var null|array
-     */
-    private $properties;
-
-    /**
      * {@inheritdoc}
      */
     public function __construct(
@@ -68,7 +63,7 @@ class WhereFilter extends DunglasSearchFilter
         array $properties = null
     )
     {
-        parent::__construct($managerRegistry, $iriConverter, $propertyAccessor, $properties);
+        parent::__construct($managerRegistry, $properties);
 
         $this->iriConverter = $iriConverter;
         $this->propertyAccessor = $propertyAccessor;
@@ -80,7 +75,11 @@ class WhereFilter extends DunglasSearchFilter
      */
     public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder, Request $request)
     {
-        $this->applyFilter($resource, $queryBuilder, $this->extractValues($request));
+        $values = $this->extractProperties($request);
+
+        if (null !== $values) {
+            $this->applyFilter($resource, $queryBuilder, $values);
+        }
     }
 
     /**
