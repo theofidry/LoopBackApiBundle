@@ -92,7 +92,7 @@ class WhereFilterTest extends KernelTestCase
 
         $filter->apply($this->resource, $queryBuilder, $request);
         $actual   = strtolower($queryBuilder->getQuery()->getDQL());
-        $expected = strtolower($expected);
+        $expected = strtolower(sprintf('SELECT o FROM %s o WHERE %s', $this->entityClass, $expected));
 
         $this->assertEquals($expected, $actual);
     }
@@ -116,12 +116,130 @@ class WhereFilterTest extends KernelTestCase
      */
     public function filterProvider()
     {
-        return [
-            [
-                null,
-                '/api/dummies?filter[where][name]=test',
-                "SELECT o FROM $this->entityClass o WHERE o.name = test"
-            ],
+        $return = [];
+
+        // Classical where
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name]=test',
+            'o.name = test'
         ];
+
+        // Classical where on boolean
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][isEnabled]=0',
+            'o.name = test'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][isEnabled]=1',
+            'o.name = test'
+        ];
+
+        // Classical where on DateTime
+//        $return[] = [
+//            null,
+//            '/api/dummies?filter[where][isEnabled]=0',
+//            'o.name = test'
+//        ];
+//        $return[] = [
+//            null,
+//            '/api/dummies?filter[where][isEnabled]=1',
+//            'o.name = test'
+//        ];
+
+        // Null value / Not null
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name]=null',
+            'o.name IS NULL'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name][neq]=null',
+            'o.name IS NOT NULL'
+        ];
+
+        // Empty string value
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name]=',
+            'o.name = ""'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name][neq]=',
+            'o.name <> ""'
+        ];
+
+        // Empty integer value
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price]=',
+            'o.price = 0'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price][neq]=',
+            'o.price <> 0'
+        ];
+
+        // Empty boolean value
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][isEnabled]=',
+            'o.isEnabled = 0'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][isEnabled][neq]=',
+            'o.isEnabled <> 0'
+        ];
+
+        //TODO: or operator
+
+        // gt(e)/lt(e)
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price][gt]=40',
+            'o.price > 40'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price][gte]=40',
+            'o.price >= 40'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price][lt]=40',
+            'o.price < 40'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price][lte]=40',
+            'o.price <= 40'
+        ];
+
+        // Between filter
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][price][between][0]=0&filter[where][price][between][1]=7',
+            'o.price BETWEEN 0 AND 7'
+        ];
+
+        // (n)like
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name][like]=test',
+            'o.name LIKE "%test%"'
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][name][nlike]=test',
+            'o.name NOT LIKE "%test%"'
+        ];
+
+        return $return;
     }
 }
