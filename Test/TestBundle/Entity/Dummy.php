@@ -43,13 +43,6 @@ class Dummy
     private $alias;
 
     /**
-     * @var string A dummy.
-     *
-     * @ORM\Column(nullable=true)
-     */
-    public $dummy;
-
-    /**
      * @var \DateTime A dummy date.
      *
      * @ORM\Column(type="datetime", nullable=true)
@@ -58,9 +51,11 @@ class Dummy
     public $dummyDate;
 
     /**
-     * @var array foo
+     * @var boolean
+     *
+     * @ORM\Column(nullable=true)
      */
-    private $foo;
+    public $isEnabled;
 
     /**
      * @var string The dummy name.
@@ -70,6 +65,13 @@ class Dummy
      * @Iri("http://schema.org/name")
      */
     private $name;
+
+    /**
+     * @var int The dummy price.
+     *
+     * @ORM\Column
+     */
+    private $price;
 
     /**
      * @var RelatedDummy A related dummy.
@@ -141,13 +143,6 @@ class Dummy
     }
 
     /**
-     * @param array $foo
-     */
-    public function setFoo(array $foo = null)
-    {
-    }
-
-    /**
      * @param \DateTime $dummyDate
      */
     public function setDummyDate(\DateTime $dummyDate)
@@ -161,5 +156,63 @@ class Dummy
     public function getDummyDate()
     {
         return $this->dummyDate;
+    }
+
+    /**
+     * Disables entity.
+     *
+     * @return $this
+     */
+    public function disable()
+    {
+        $this->isEnabled = false;
+
+        return $this;
+    }
+
+    /**
+     * Enables entity.
+     *
+     * @return $this
+     */
+    public function enable()
+    {
+        $this->isEnabled = true;
+
+        return $this;
+    }
+
+    /**
+     * Gets IsEnabled.
+     *
+     * @return string|null
+     */
+    public function isEnabled()
+    {
+        return $this->isEnabled;
+    }
+
+    /**
+     * Sets Price.
+     *
+     * @param int $price
+     *
+     * @return $this
+     */
+    public function setPrice($price)
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    /**
+     * Gets Price.
+     *
+     * @return int|null
+     */
+    public function getPrice()
+    {
+        return $this->price;
     }
 }
