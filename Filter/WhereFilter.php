@@ -12,7 +12,6 @@
 namespace Fidry\LoopBackApiBundle\Filter;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
@@ -20,6 +19,7 @@ use Dunglas\ApiBundle\Api\ResourceInterface;
 use Dunglas\ApiBundle\Doctrine\Orm\Filter\AbstractFilter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * Class SearchFilter.
@@ -116,28 +116,43 @@ class WhereFilter extends AbstractFilter
                  *
                  * $value = [
                  *    0 => [
-                 *        'property' => [
-                 *            'operator' => 'operand'
-                 *         ],
-                 *         'property' => value
+                 *       0 => [
+                 *          'property' => [
+                 *             'operator' => 'operand'
+                 *          ]
+                 *       ],
+                 *       1 => [
+                 *          'property' => value
+                 *       ]
                  *    ],
                  *    1 => [...],
                  *    ...
                  * ]
                  */
-                foreach ($value as $dataSet) {
+                foreach ($value as $index => $dataSet) {
                     // Expect $dataSet to be an array containing 2 parameters
                     if (is_array($dataSet) && 2 === count($dataSet)) {
-                        $dataSet = array_values($dataSet);
                         $queries = [];
 
                         // Handle each "query" of $dataSet
-                        foreach ($dataSet as $property => $propValue) {
-                            // At this point $propValue may be either a value or an array (for operators)
-                            $expr = $this->handleFilter($queryBuilder, $fieldNames, $property, $propValue);
-                            if (null !== $expr) {
-                                $queries[] = $expr;
+                        $count = 0;
+                        foreach ($dataSet as $dataSetElem) {
+                            if (false === is_array($dataSetElem)) {
+                                continue;
                             }
+                            $property = key($dataSetElem);
+
+                            // At this point the value may be either a value or an array (for operators)
+                            $expr = $this->handleFilter(
+                                $queryBuilder,
+                                $fieldNames,
+                                $property,
+                                $dataSetElem[$property],
+                                sprintf('or_%s%d%d', $property, $index, $count)
+                            );
+
+                            $queries = array_merge($queries, $expr);
+                            $count++;
                         }
 
                         if (2 === count($queries)) {
@@ -146,7 +161,7 @@ class WhereFilter extends AbstractFilter
                     }
                 }
             } else {
-                $queryExpr[] = $this->handleFilter($queryBuilder, $fieldNames, $key, $value);
+                $queryExpr = array_merge($queryExpr, $this->handleFilter($queryBuilder, $fieldNames, $key, $value));
             }
         }
 
@@ -163,43 +178,39 @@ class WhereFilter extends AbstractFilter
      * @param QueryBuilder $queryBuilder
      * @param array        $fieldNames
      * @param string       $property
-     * @param mixed        $value
+     * @param array|string $value
+     * @param string|null  $parameter If is string is used to construct the parameter to avoid parameter conflicts.
      *
      * @return array
      */
-    private function handleFilter(QueryBuilder $queryBuilder, array $fieldNames, $property, $value)
+    private function handleFilter(QueryBuilder $queryBuilder, array $fieldNames, $property, $value, $parameter = null)
     {
         $queryExpr = [];
 
         // $key is a property
-        if (isset($fieldNames[$property])) {
+        if (true === isset($fieldNames[$property])) {
             // Entity has the property
             if (is_array($value)) {
                 foreach ($value as $operator => $operand) {
                     // Case where there is an operator
-                    // The `between` operator is handled separately
-                    if (self::PARAMETER_OPERATOR_BETWEEN === $operator
-                        && is_array($operand)
-                        && 2 === count($operand)
-                    ) {
-                        $operand = array_values($operand);
-
-                        $query1 = $this->handleOperator($property, $operator, $operand[0]);
-                        $query2 = $this->handleOperator($property, $operator, $operand[1]);
-
-                        if (null !== $query1 && null !== $query2) {
-                            $queryExpr[] = $queryBuilder->expr()->andX($query1, $query2);
-                        }
-                    } else {
-                        $queryExpr[] = $this->handleOperator($property, $operator, $operand);
-                    }
+                    $queryExpr[] = $this->handleOperator($queryBuilder, $property, $operator, $operand, $parameter);
                 }
             } else {
                 // Simple where
                 if (self::PARAMETER_ID_KEY === $property) {
                     $value = $this->getFilterValueFromUrl($value);
                 }
-                // TODO $queryExpr[] = expr(prop = $value)
+
+                $value = $this->normalizeValue($property, $value);
+                if (null === $value) {
+                    $queryExpr[] = $queryBuilder->expr()->isNull(sprintf('o.%s', $property));
+                } else {
+                    if (null === $parameter) {
+                        $parameter = $property;
+                    }
+                    $queryExpr[] = $queryBuilder->expr()->eq(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                    $queryBuilder->setParameter($parameter, $value);
+                }
             }
         } else {
             // TODO: handle association
@@ -211,51 +222,93 @@ class WhereFilter extends AbstractFilter
     /**
      * Get the proper query expression for the set of data given.
      *
+     * @param QueryBuilder $queryBuilder
      * @param string       $property
      * @param string       $operator
      * @param string|array $value
+     * @param string|null  $parameter If is string is used to construct the parameter to avoid parameter conflicts.
      *
      * @return Expr|null
      */
-    private function handleOperator($property, $operator, $value)
+    private function handleOperator(QueryBuilder $queryBuilder, $property, $operator, $value, $parameter = null)
     {
-        // Expect $operand to be a value
-        if (is_array($value)) {
+        $queryExpr = null;
+        if (null === $parameter) {
+            $parameter = $property;
+        }
+
+        // Only particuliar case: the between operator
+        if (self::PARAMETER_OPERATOR_BETWEEN === $operator
+            && is_array($value)
+            && 2 === count($value)
+        ) {
+            $value       = array_values($value);
+            $paramBefore = sprintf(':between_before_%s', $parameter);
+            $paramAfter  = sprintf(':between_after_%s', $parameter);
+
+            $queryExpr = $queryBuilder->expr()->between(
+                sprintf('o.%s', $property),
+                $paramBefore,
+                $paramAfter
+            );
+            $queryBuilder->setParameters([
+                $paramBefore => $value[0],
+                $paramAfter  => $value[1]
+            ]);
+
+            return $queryExpr;
+        }
+
+        // Expect $value to be a string
+        if (false === is_string($value)) {
             return null;
         }
+
+        // Normalize $value before using it
         $value = $this->normalizeValue($property, $value);
 
         switch ($operator) {
             case self::PARAMETER_OPERATOR_GT:
-                // TODO expr: prop > $operand
+                $queryExpr = $queryBuilder->expr()->gt(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_GTE:
-                // TODO expr: prop >= $operand
+                $queryExpr = $queryBuilder->expr()->gte(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_LT:
-                // TODO expr: prop < $operand
+                $queryExpr = $queryBuilder->expr()->lt(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_LTE:
-                // TODO expr: prop <= $operand
+                $queryExpr = $queryBuilder->expr()->lte(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_NEQ:
-                // TODO expr: prop != $operand
+                if (null === $value) {
+                    $queryExpr = $queryBuilder->expr()->isNotNull(sprintf('o.%s', $property));
+                } else {
+                    $queryExpr = $queryBuilder->expr()->neq(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                    $queryBuilder->setParameter($parameter, $value);
+                }
                 break;
 
             case self::PARAMETER_OPERATOR_LIKE:
-                // TODO expr: prop like $operand
+                $queryExpr = $queryBuilder->expr()->like(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryBuilder->setParameter($parameter, sprintf('%%%s%%', $value));
                 break;
 
             case self::PARAMETER_OPERATOR_NLIKE:
-                // TODO expr: prop nlike $operand
+                $queryExpr = $queryBuilder->expr()->notLike(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryBuilder->setParameter($parameter, sprintf('%%%s%%', $value));
                 break;
         }
 
-        // TODO: return $expr;
+        return $queryExpr;
     }
     
     /**
@@ -281,54 +334,9 @@ class WhereFilter extends AbstractFilter
     }
 
     /**
-     * @param ClassMetadata $metadata
-     * @param array         $fieldNames
-     * @param QueryBuilder  $queryBuilder
-     * @param string        $property
-     * @param string        $value
-     */
-    private function applyFilterOnStringValue(
-        ClassMetadata $metadata,
-        array $fieldNames,
-        QueryBuilder $queryBuilder,
-        $property,
-        $value
-    ) {
-        // Check if property is enabled
-        if (null === $this->properties || isset($this->properties[$property])) {
-            // Test if entity has property or if relation has entity
-            if (isset($fieldNames[$property])) {
-                // If is ID retrieve the real value
-                if ('id' === $property) {
-                    $value = $this->getFilterValueFromUrl($value);
-                }
-
-                if ('null' === $value) {
-                    $queryBuilder->andWhere(sprintf('o.%s IS NULL', $property));
-                } else {
-                    $queryBuilder
-                        ->andWhere(sprintf('o.%1$s = :%1$s', $property))
-                        ->setParameter($property, $value);
-                }
-            } elseif ($metadata->isSingleValuedAssociation($property)
-                || $metadata->isCollectionValuedAssociation($property)
-            ) {
-                $value = $this->getFilterValueFromUrl($value);
-
-                $queryBuilder->join(sprintf('o.%s', $property), $property);
-                if ('null' === $value) {
-                    $queryBuilder->andWhere(sprintf('o.%s IS NULL', $property));
-                } else {
-                    $queryBuilder
-                        ->andWhere(sprintf('o.%1$s = :%1$s', $property))
-                        ->setParameter($property, $value);
-                }
-            }
-        }
-    }
-
-    /**
      * {@inheritdoc}
+     *
+     * TODO
      */
     public function getDescription(ResourceInterface $resource)
     {
@@ -358,7 +366,6 @@ class WhereFilter extends AbstractFilter
 
         return $description;
     }
-
 
     /**
      * Gets the ID from an URI or a raw ID.
