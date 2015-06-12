@@ -21,6 +21,7 @@ use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * Class WhereFilter.
@@ -67,7 +68,7 @@ class WhereFilterTest extends KernelTestCase
     protected function setUp()
     {
         self::bootKernel();
-        $this->entityClass = 'ApiBundle\Test\Entity\Dummy';
+        $this->entityClass = 'Fidry\LoopBackApiBundle\Test\TestBundle\Entity\Dummy';
         $this->managerRegistry = self::$kernel->getContainer()->get('doctrine');
         $this->iriConverter = self::$kernel->getContainer()->get('api.iri_converter');
         $this->propertyAccessor = self::$kernel->getContainer()->get('property_accessor');
@@ -83,7 +84,7 @@ class WhereFilterTest extends KernelTestCase
      * @param string     $url        URL.
      * @param string     $expected   Expected DQL query.
      */
-    public function testFilter($properties, $url, $expected)
+    public function testFilter($properties, $url, $expected, $parameters = [])
     {
         $request = Request::create($url, 'GET');
         $filter = new WhereFilter($this->managerRegistry, $this->iriConverter, $this->propertyAccessor, $properties);
@@ -92,9 +93,15 @@ class WhereFilterTest extends KernelTestCase
 
         $filter->apply($this->resource, $queryBuilder, $request);
         $actual   = strtolower($queryBuilder->getQuery()->getDQL());
-        $expected = strtolower(sprintf('SELECT o FROM %s o WHERE %s', $this->entityClass, $expected));
+        $expected = ('' === $expected)?
+            strtolower(sprintf('SELECT o FROM %s o', $this->entityClass)):
+            strtolower(sprintf('SELECT o FROM %s o WHERE %s', $this->entityClass, $expected))
+        ;
 
         $this->assertEquals($expected, $actual);
+        foreach ($parameters as $parameter => $value) {
+            $this->assertEquals($value, $queryBuilder->getParameter($parameter)->getValue());
+        }
     }
 
     /**
@@ -106,12 +113,6 @@ class WhereFilterTest extends KernelTestCase
     }
 
     /**
-     * Providers 3 parameters:
-     *  - filter parameters.
-     *  - properties to test. Keys are the property name. If the value is true, the filter should work on the property,
-     *    otherwise not.
-     *  - expected DQL query
-     *
      * @return array
      */
     public function filterProvider()
@@ -122,20 +123,43 @@ class WhereFilterTest extends KernelTestCase
         $return[] = [
             null,
             '/api/dummies?filter[where][name]=test',
-            'o.name = test'
+            'o.name = :name',
+            [
+                'name' => 'test'
+            ]
         ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][unknown]=test',
+            '',
+            []
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[yolo][name]=test',
+            '',
+            []
+        ];
+
 
         // Classical where on boolean
         $return[] = [
             null,
             '/api/dummies?filter[where][isEnabled]=0',
-            'o.name = test'
+            'o.isEnabled = :isEnabled',
+            [
+                'isEnabled' => 0
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][isEnabled]=1',
-            'o.name = test'
+            'o.isEnabled = :isEnabled',
+            [
+                'isEnabled' => 1
+            ]
         ];
+
 
         // Classical where on DateTime
 //        $return[] = [
@@ -149,6 +173,7 @@ class WhereFilterTest extends KernelTestCase
 //            'o.name = test'
 //        ];
 
+
         // Null value / Not null
         $return[] = [
             null,
@@ -161,84 +186,167 @@ class WhereFilterTest extends KernelTestCase
             'o.name IS NOT NULL'
         ];
 
+
         // Empty string value
         $return[] = [
             null,
             '/api/dummies?filter[where][name]=',
-            'o.name = ""'
+            'o.name = :name',
+            [
+                'name' => ''
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][name][neq]=',
-            'o.name <> ""'
+            'o.name <> :name',
+            [
+                'name' => ''
+            ]
         ];
+
 
         // Empty integer value
         $return[] = [
             null,
             '/api/dummies?filter[where][price]=',
-            'o.price = 0'
+            'o.price = :price',
+            [
+                'price' => ''
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][neq]=',
-            'o.price <> 0'
+            'o.price <> :price',
+            [
+                'price' => ''
+            ]
         ];
+
 
         // Empty boolean value
         $return[] = [
             null,
             '/api/dummies?filter[where][isEnabled]=',
-            'o.isEnabled = 0'
+            'o.isEnabled = :isEnabled',
+            [
+                'isEnabled' => ''
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][isEnabled][neq]=',
-            'o.isEnabled <> 0'
+            'o.isEnabled <> :isEnabled',
+            [
+                'isEnabled' => ''
+            ]
         ];
 
-        //TODO: or operator
 
-        // gt(e)/lt(e)
+        // gt(e)/lt(e) operator
         $return[] = [
             null,
             '/api/dummies?filter[where][price][gt]=40',
-            'o.price > 40'
+            'o.price > :price',
+            [
+                'price' => 40
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][gte]=40',
-            'o.price >= 40'
+            'o.price >= :price',
+            [
+                'price' => 40
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][lt]=40',
-            'o.price < 40'
+            'o.price < :price',
+            [
+                'price' => 40
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][lte]=40',
-            'o.price <= 40'
+            'o.price <= :price',
+            [
+                'price' => 40
+            ]
         ];
 
-        // Between filter
+
+        // Between operator
         $return[] = [
             null,
             '/api/dummies?filter[where][price][between][0]=0&filter[where][price][between][1]=7',
-            'o.price BETWEEN 0 AND 7'
+            'o.price BETWEEN :between_before_price AND :between_after_price',
+            [
+                'between_before_price' => 0,
+                'between_after_price'  => 7
+            ]
         ];
 
-        // (n)like
+
+        // (n)like operator
         $return[] = [
             null,
             '/api/dummies?filter[where][name][like]=test',
-            'o.name LIKE "%test%"'
+            'o.name LIKE :name',
+            [
+                'name' => '%test%'
+            ]
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][name][nlike]=test',
-            'o.name NOT LIKE "%test%"'
+            'o.name NOT LIKE :name',
+            [
+                'name' => '%test%'
+            ]
         ];
+
+//
+        // Or operator
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][or][0][][name]=test&filter[where][or][0][][price]=20',
+            'o.name = :or_name00 OR o.price = :or_price01',
+            [
+                'or_name00'  => 'test',
+                'or_price01' => 20
+            ]
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][or][0][][name][neq]=null&filter[where][or][0][][price]=20',
+            'o.name IS NOT NULL OR o.price = :or_price01',
+            [
+                'or_price01' => 20
+            ]
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][or][0][][name]=test&filter[where][or][0][][name]=pol&filter[where][or][1][][price]=20&filter[where][or][1][][name]=toto',
+            '(o.name = :or_name00 OR o.name = :or_name01) AND (o.price = :or_price10 OR o.name = :or_name11)',
+            [
+                'or_name00'  => 'test',
+                'or_name01'  => 'pol',
+                'or_price10' => 20,
+                'or_name11'  => 'toto'
+            ]
+        ];
+        $return[] = [
+            null,
+            '/api/dummies?filter[where][or][0][name]=test&filter[where][or][0][][price]=20',
+            '',
+            []
+        ];
+
+        //TODO: test the config
 
         return $return;
     }
