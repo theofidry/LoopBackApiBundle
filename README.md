@@ -14,6 +14,7 @@
 * [Where filters](#where-filters)
   * [Boolean values](#boolean-values)
   * [Date values](#date-values)
+  * [Null values](#null-values)
   * [Empty values](#empty-values)
   * [Operators](#operators)
     * [or](#or)
@@ -102,6 +103,12 @@ Example: `url?filter[where][property][op]=` or `url?filter[where][property][op]`
 
 ##### `or`
 
+Note: This operator is the only one which differs from others since it's the only one you can use with other operators.
+
+REST syntax: `?filter[where][or][0][property1][op]=val1&filter[where][or][0][property2][op]=val2`
+
+`0` in the example above is a key of the `or` operator. The operator compare the two values of the same key. As a result, if you which to use multiple time this operator, you can use several key like in the second example.
+
 ###### Example #1
 
 Example: `field1 === 'val1' || field2 === 'val2'`
@@ -172,6 +179,14 @@ Example of between operator: `filter[where][price][between][0]=0&filter[where][p
 
 Note: the keys `0` and `1` are optional, unlike the `or` operator, only two values are expected with `between`. It is
  assumed that the first values is the "lower" one.
+
+##### `neq`
+
+Examples:
+* looking for names which are not null: `filter[where][name][neq]=null`
+* looking for names which are not empty: `filter[where][name][neq]=`
+* looking for names which are not empty: `filter[where][name][neq]=`
+* looking for names which are not equal to a given value: `filter[where][name][neq]=a%20name`
 
 ##### `like`/`nlike`
 
