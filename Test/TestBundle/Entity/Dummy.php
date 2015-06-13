@@ -136,13 +136,6 @@ class Dummy
     }
 
     /**
-     * @param $role
-     */
-    public function hasRole($role)
-    {
-    }
-
-    /**
      * @param \DateTime $dummyDate
      */
     public function setDummyDate(\DateTime $dummyDate)

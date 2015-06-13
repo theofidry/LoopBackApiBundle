@@ -87,24 +87,15 @@ class WhereFilter extends AbstractFilter
      *
      * @param ResourceInterface $resource
      * @param QueryBuilder      $queryBuilder
-     * @param array|null        $queryValues
+     * @param array             $queryValues
      *
      * @return QueryBuilder
      */
-    public function applyFilter(ResourceInterface $resource, QueryBuilder $queryBuilder, array $queryValues = null)
+    public function applyFilter(ResourceInterface $resource, QueryBuilder $queryBuilder, array $queryValues)
     {
         $metadata = $this->getClassMetadata($resource);
         $fieldNames = array_flip($metadata->getFieldNames());
         $queryExpr = [];
-
-        /*
-         * TODO:
-         *
-         * Left to consider:
-         * - empty values
-         * - single/multiassociation values
-         * - embedded relation associations
-         */
 
         // Retrieve all doctrine query expressions
         foreach ($queryValues as $key => $value) {
