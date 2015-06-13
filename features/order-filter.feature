@@ -7,8 +7,8 @@ Feature: Order filter on collections
   @createSchema
   Scenario: Get collection ordered in ascending order on an integer property and on which order filter has been enabled
   in whitelist mode
-    Given there is "30" dummy objects
-    When I send a "GET" request to "/dummies?filter[order][id]=asc"
+    Given there is 30 dummy objects
+    When I send a GET request to "/dummies?filter[order][id]=asc"
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json"
@@ -16,13 +16,13 @@ Feature: Order filter on collections
     """
     {
       "@context": "/contexts/Dummy",
-      "@id": "/dummies?order[id]=asc",
+      "@id": "/dummies?filter[order][id]=asc",
       "@type": "hydra:PagedCollection",
-      "hydra:nextPage": "/dummies?order%5Bid%5D=asc&page=2",
+      "hydra:nextPage": "/dummies?filter%5Border%5D%5Bid%5D=asc&page=2",
       "hydra:totalItems": 30,
       "hydra:itemsPerPage": 3,
-      "hydra:firstPage": "/dummies?order%5Bid%5D=asc",
-      "hydra:lastPage": "/dummies?order%5Bid%5D=asc&page=10",
+      "hydra:firstPage": "/dummies?filter%5Border%5D%5Bid%5D=asc",
+      "hydra:lastPage": "/dummies?filter%5Border%5D%5Bid%5D=asc&page=10",
       "hydra:member": [
           {
             "@id": "/dummies/1",
