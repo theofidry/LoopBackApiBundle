@@ -19,11 +19,10 @@ matrix:
         - php: hhvm-nightly
     fast_finish: true
 
-before_script:
-    - composer self-update
-
 install:
     - composer install
+    - composer self-update
+    - rm -rf Features/SymfonyApp/cache/*
 
 script:
     - vendor/bin/behat
