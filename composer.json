@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": ">=5.5",
-    "dunglas/api-bundle": "dev-master",
+    "dunglas/api-bundle": "~1.0@beta",
     "dunglas/php-property-info": "~0.2",
     "doctrine/doctrine-bundle": "~1.2",
     "doctrine/inflector": "~1.0",
