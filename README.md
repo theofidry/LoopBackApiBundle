@@ -1,199 +1,60 @@
-# LoopBackApiundle
+# LoopBackApiBundle
 
-[![Build Status](https://travis-ci.org/theofidry/LoopBackApiBundle.svg?branch=master)](https://travis-ci.org/theofidry/LoopBackApiBundle) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/e7cbcdb9-f024-43e0-b7ba-7a002949aa98/big.png)](https://insight.sensiolabs.com/projects/e7cbcdb9-f024-43e0-b7ba-7a002949aa98)
+[![Package version](http://img.shields.io/packagist/v/theofidry/loopback-api-bundle.svg?style=flat-square)](https://packagist.org/packages/theofidry/loopback-api-bundle)
+[![Build Status](https://img.shields.io/travis/theofidry/LoopBackApiBundle.svg?&branch=master&style=flat-square)](https://travis-ci.org/theofidry/LoopBackApiBundle?branch=master)
+[![SensioLabsInsight](https://img.shields.io/sensiolabs/i/e7cbcdb9-f024-43e0-b7ba-7a002949aa98.svg?style=flat-square)](https://insight.sensiolabs.com/projects/e7cbcdb9-f024-43e0-b7ba-7a002949aa98)
+[![Dependency Status](https://www.versioneye.com/user/projects/55887c45306662001a0000ce/badge.svg?style=flat)](https://www.versioneye.com/user/projects/55887c45306662001a0000ce)
+[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/theofidry/LoopBackApiBundle.svg?style=flat-square)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master)
 
 [LoopBack](http://loopback.io/) like Doctrine ORM filters for [DunglasApiBundle](https://github.com/dunglas/DunglasApiBundle).
 
-**WARNING**: Work in Progress, not ready for production.
 
-# Documentation
+## Documentation
 
-## Table of Contents
+1. [Install](#install)
+2. [Introduction](Resources/doc/introduction.md)
+3. [Order filters](Resources/doc/order-filter.md)
+4. [Where filters](Resources/doc/where-filter.md)
+  1. [Special values](Resources/doc/where-filter.md#special-values)
+    1. [Search on embedded relation property](Resources/doc/where-filter.md#search-on-embedded-relation-property)
+    2. [Boolean values](Resources/doc/where-filter.md#boolean-values)
+    3. [Date values](Resources/doc/where-filter.md#date-values)
+    4. [Null values](Resources/doc/where-filter.md#null-values)
+    5. [Empty values](Resources/doc/where-filter.md#empty-values)
+  2. [Operators](Resources/doc/where-filter.md#operators)
+    1. [or](Resources/doc/where-filter.md#or)
+    2. [gt(e)/lt(e)](Resources/doc/where-filter.md#gtelte)
+    3. [between](Resources/doc/where-filter.md#between)
+    4. [neq](Resources/doc/where-filter.md#neq)
+    15. [like/nlike](Resources/doc/where-filter.md#likenlike)
 
-* [Order filters](#order-filters)
-* [Where filters](#where-filters)
-  * [Boolean values](#boolean-values)
-  * [Date values](#date-values)
-  * [Null values](#null-values)
-  * [Empty values](#empty-values)
-  * [Operators](#operators)
-    * [or](#or)
-    * [gt(e)/lt(e)](#gtelte)
-    * [between](#between)
-    * [like/nlike](#likenlike)
 
-### Order filters
+## Install
 
-Order filters are used to order **a collection** by properties in ascending or descending orders.
+You can use [Composer](https://getcomposer.org/) to install the bundle to your project:
 
-Syntax:
-```
-url?filter[order][property]=<ASC|DESC>
-```
-
-where `property` is the name of the property and `ASC`, `DESC` the order value (case insensitive). **The order of the order filters is important**: if we specify the filter `?order[name]=asc&order[id]=desc`, the result will be a collection ordered by `name` in ascending order and when some names are equal, ordered by `id` in descending order.
-
-If there is an embedded relation and you want to apply the ordering a property of the other entity:
-
-```
-url?filter[order][property.propOfEntity]=<ASC|DESC>
+```bash
+composer require theofidry/loopback-api-bundle
 ```
 
-### Where filters
-
-Note: the where filter is based on Dunglas' SearchFilter. Dunglas' bundle uses `search` for this kind of filter like Django whereas Loopback uses `where`. As this bundle is more similar to LoopBack for filter syntax, I decided to keep up with it.
-
-Where filters are used to filter a collection by applying a mask (making match some properties).
-
-Syntax:
-```
-url?filter[where][property][op]=value
-```
-
-where `property` is the name of the property, `op` the operator and `value` takes the value wished (case sensitive). The value is by default a `string`. If you wish to test a `boolean` value, test it against `0` (`false`) or `1` (`true`) - of course if the property is a number, it will be tested against a number and not against a boolean value!
-
-#### Search on embedded relation property
-
-```
-url?filter[where][property.propOfEntity][op]=value
-```
-
-#### Boolean values
-
-To refer to a boolean value at `false`, use `0` and not `false` as a value. The same way use `1` for `true`.
-
-Example: `url?filter[where][booleanProperty]=1`
-
-#### Date values
-
-The date value is a date string format which must be understood by [`\DateTime`](http://php.net/manual/fr/datetime.construct.php).
-
-Example: `url?filter[where][property][op]=2015-04-28`
-
-#### Null values
-
-To search for value `null` just use `null`!
-
-Example: `url?filter[where][property][op]=null`
-
-Note: this feature has a drawback, it becomes impossible to search for a string value `"null"`.
-
-#### Empty values
-
-Careful here, an empty value for a REST API is not the same as an empty value in PHP. Indeed in PHP a value is empty if undefined, null or equivalent to `false`. For the API, and empty value is only the later:
-* for a string: `""`
-* for a number: `0`
-* for a date: invalid, will throw an error
-* for a boolean: `false`
-
-To search for an empty value just omit the value:
-
-Example: `url?filter[where][property][op]=` or `url?filter[where][property][op]` (the first one is builded as the second by your client).
-
-#### Operators
-
-| Operator | Description |
-|----------|:-------------|
-| or | Logical OR operator |
-| gt, gte | Numerical greater than (>); greater than or equal (>=). Valid only for numerical and date values. For Geopoint values, the units are in miles by default. See Geopoint for more information. |
-| lt, lte | Numerical less than (<); less than or equal (<=). Valid only for numerical and date values. For geolocation values, the units are in miles by default. See Geopoint for more information. |
-| between | True if the value is between the two specified values: greater than or equal to first value and less than or equal to second value. For geolocation values, the units are in miles by default. See Geopoint for more information. |
-| neq | Not equal (!=) |
-| like, nlike | LIKE / NOT LIKE operators for use with regular expressions. The regular expression format depends on the backend data source. |
-
-##### `or`
-
-Note: This operator is the only one which differs from others since it's the only one you can use with other operators.
-
-REST syntax: `?filter[where][or][0][property1][op]=val1&filter[where][or][0][property2][op]=val2`
-
-`0` in the example above is a key of the `or` operator. The operator compare the two values of the same key. As a result, if you which to use multiple time this operator, you can use several key like in the second example.
-
-###### Example #1
-
-Example: `field1 === 'val1' || field2 === 'val2'`
-
-REST syntax: `?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2`
-
-
-Which results in:
-
+Then, enable the bundle by updating your `app/config/AppKernel.php` file to enable the bundle:
 ```php
-[ 'filter' => [
-    'where' => [
-        'or' => [
-            0 => [
-                'field1' => 'val1',
-                'field2' => 'val2'
-            ]
-        ]
-    ]
-]
+<?php
+// app/config/AppKernel.php
+
+public function registerBundles()
+{
+    //...
+    $bundles[] = new Fidry\LoopBackApiBundle\LoopBackApiBundle();
+
+    return $bundles;
+}
 ```
 
-###### Example #2
+## Credits
 
-Example: `( (field1 === 'val1' || field2 === 'val2') ) && ( (field3 === 'val3' || field4 === 'val4') )`
-
-REST syntax:
-
-```
-?filter[where][or][0][field1]=val1&filter[where][or][0][field2]=val2
-&filter[where][or][1][field3]=val3&filter[where][or][1][field4]=val4
-```
-
-Which results in:
-
-```php
-[ 'filter' => [
-    'where' => [
-        'or' => [
-            0 => [
-                'field1' => 'val1',
-                'field2' => 'val2'
-            ],
-            1 => [
-                'field3' => 'val3',
-                'field4' => 'val4'
-            ]
-        ]
-    ]
-]
-```
-
-Note: as you can see, between each vakye of the array `query['filter']['where']['or']`, a `and` is applied.
-
-##### `gt(e)`/`lt(e)`
-
-Example: the following query returns all instances of the employee entity using a where filter that specifies a date property after (greater than) the specified date:
-
-REST syntax:
-
-`/employees?filter[where][date][gt]=2014-04-01T18:30:00.000Z`
-
-The date value may be simplified. The format does not really matter but keep in mind that behind it, the value retrieved is instantiated as a `\DateTime` with the default timezone of the application.
-
-##### `between`
-
-Example of between operator: `filter[where][price][between][0]=0&filter[where][price][between][1]=7`.
-
-Note: the keys `0` and `1` are optional, unlike the `or` operator, only two values are expected with `between`. It is
- assumed that the first values is the "lower" one.
-
-##### `neq`
-
-Examples:
-* looking for names which are not null: `filter[where][name][neq]=null`
-* looking for names which are not empty: `filter[where][name][neq]=`
-* looking for names which are not empty: `filter[where][name][neq]=`
-* looking for names which are not equal to a given value: `filter[where][name][neq]=a%20name`
-
-##### `like`/`nlike`
-
-The like and nlike (not like) operators enable you to match SQL regular expressions.
-
-[1]: https://github.com/dunglas/DunglasApiBundle
+This bundle is developed by [Théo FIDRY](https://github.com/theofidry).
 
 # License
 
-[![License](https://img.shields.io/packagist/l/doctrine/orm.svg?style=flat-square)](https://github.com/theofidry/LoopBackApiBundle/edit/master/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-red.svg?style=flat-square)](LICENSE)
