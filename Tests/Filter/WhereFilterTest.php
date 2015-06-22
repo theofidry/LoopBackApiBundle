@@ -9,7 +9,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Fidry\LoopBackApiBundle\Tests\Filter;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
@@ -21,7 +20,6 @@ use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * Class WhereFilter.
@@ -68,7 +66,7 @@ class WhereFilterTest extends KernelTestCase
     protected function setUp()
     {
         self::bootKernel();
-        $this->entityClass = 'Fidry\LoopBackApiBundle\Test\TestBundle\Entity\Dummy';
+        $this->entityClass = 'Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy';
         $this->managerRegistry = self::$kernel->getContainer()->get('doctrine');
         $this->iriConverter = self::$kernel->getContainer()->get('api.iri_converter');
         $this->propertyAccessor = self::$kernel->getContainer()->get('property_accessor');
@@ -83,6 +81,7 @@ class WhereFilterTest extends KernelTestCase
      * @param array|null $properties Properties on which the filter may be enabled.
      * @param string     $url        URL.
      * @param string     $expected   Expected DQL query.
+     * @param array      $parameters Expected parameters of the DQL query.
      */
     public function testFilter($properties, $url, $expected, $parameters = [])
     {

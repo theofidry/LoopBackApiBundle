@@ -13,7 +13,7 @@ use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Tools\SchemaTool;
-use Fidry\LoopBackApiBundle\Test\TestBundle\Entity\Dummy;
+use Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy;
 
 /**
  * Class FeatureContext.

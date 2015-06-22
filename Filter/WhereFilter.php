@@ -19,7 +19,6 @@ use Dunglas\ApiBundle\Api\ResourceInterface;
 use Dunglas\ApiBundle\Doctrine\Orm\Filter\AbstractFilter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
-use Symfony\Component\VarDumper\VarDumper;
 
 /**
  * Class SearchFilter.
@@ -75,24 +74,7 @@ class WhereFilter extends AbstractFilter
      */
     public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder, Request $request)
     {
-        $values = $this->extractProperties($request);
-
-        if (null !== $values) {
-            $this->applyFilter($resource, $queryBuilder, $values);
-        }
-    }
-
-    /**
-     * Create query to order the collection by the properties passed.
-     *
-     * @param ResourceInterface $resource
-     * @param QueryBuilder      $queryBuilder
-     * @param array             $queryValues
-     *
-     * @return QueryBuilder
-     */
-    public function applyFilter(ResourceInterface $resource, QueryBuilder $queryBuilder, array $queryValues)
-    {
+        $queryValues = $this->extractProperties($request);
         $metadata = $this->getClassMetadata($resource);
         $fieldNames = array_flip($metadata->getFieldNames());
         $queryExpr = [];

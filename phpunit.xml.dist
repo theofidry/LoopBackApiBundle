@@ -11,21 +11,23 @@
         <server name="KERNEL_DIR" value="Features/fixtures/SymfonyApp/" />
     </php>
 
-    <logging>
-        <log type="coverage-html" target="../build/reports/phpunit/" lowUpperBound="35" highLowerBound="70"/>
-        <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
-        <log type="coverage-clover" target="../build/reports/phpunit/clover.xml"/>
-    </logging>
-
     <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>Tests</directory>
+        <testsuite name="LoopBackApiBundle Test Suite">
+            <directory suffix="Test.php">Tests</directory>
+            <exclude>
+                <directory>Features</directory>
+                <directory>Resources</directory>
+                <directory>Tests/TestBundle</directory>
+            </exclude>
         </testsuite>
     </testsuites>
 
     <filter>
-        <whitelist>
-            <directory>Tests</directory>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">Tests</directory>
+            <exclude>
+                <directory suffix=".php">Tests/TestBundle</directory>
+            </exclude>
         </whitelist>
     </filter>
 </phpunit>

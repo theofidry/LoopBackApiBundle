@@ -48,11 +48,11 @@ trait FilterTrait
      */
     protected function extractProperties(Request $request)
     {
-        $filter = $request->query->get('filter');
-        if (null !== $filter && array_key_exists($this->parameter, $filter)) {
+        $filter = $request->query->get('filter', []);
+        if (array_key_exists($this->parameter, $filter)) {
             return $filter[$this->parameter];
         }
 
-        return null;
+        return [];
     }
 }
