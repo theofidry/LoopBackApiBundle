@@ -34,8 +34,6 @@
     "behat/mink-extension": "~2.0",
     "behat/mink-browserkit-driver": "~1.1",
     "behatch/contexts": "dev-master#eef7ab39ca896796bf3ba25a0fa5a95f15276eb7",
-    "friendsofsymfony/user-bundle": "dev-master",
-    "phpspec/phpspec": "~2.0",
     "phpunit/phpunit": "~4.7"
   },
   "autoload": {

@@ -67,9 +67,9 @@ class Dummy
     private $name;
 
     /**
-     * @var int The dummy price.
+     * @var float The dummy price.
      *
-     * @ORM\Column
+     * @ORM\Column(type="float", nullable=true)
      */
     private $price;
 
@@ -188,7 +188,7 @@ class Dummy
     /**
      * Sets Price.
      *
-     * @param int $price
+     * @param float $price
      *
      * @return $this
      */
@@ -202,7 +202,7 @@ class Dummy
     /**
      * Gets Price.
      *
-     * @return int|null
+     * @return float|null
      */
     public function getPrice()
     {
