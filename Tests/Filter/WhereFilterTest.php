@@ -161,6 +161,7 @@ class WhereFilterTest extends KernelTestCase
 
 
         // Classical where on DateTime
+        //TODO: enable this test
 //        $return[] = [
 //            null,
 //            '/api/dummies?filter[where][isEnabled]=0',

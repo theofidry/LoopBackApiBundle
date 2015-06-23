@@ -13,13 +13,11 @@ namespace Fidry\LoopBackApiBundle\Tests\Filter;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityRepository;
-use Dunglas\ApiBundle\Api\IriConverter;
 use Dunglas\ApiBundle\Api\Resource;
 use Fidry\LoopBackApiBundle\Filter\OrderFilter;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * Class OrderFilterTest.
@@ -36,19 +34,9 @@ class OrderFilterTest extends KernelTestCase
     private $entityClass;
 
     /**
-     * @var IriConverter
-     */
-    private $iriConverter;
-
-    /**
      * @var ManagerRegistry
      */
     private $managerRegistry;
-
-    /**
-     * @var PropertyAccessor
-     */
-    private $propertyAccessor;
 
     /**
      * @var EntityRepository
@@ -68,8 +56,6 @@ class OrderFilterTest extends KernelTestCase
         self::bootKernel();
         $this->entityClass = 'Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy';
         $this->managerRegistry = self::$kernel->getContainer()->get('doctrine');
-        $this->iriConverter = self::$kernel->getContainer()->get('api.iri_converter');
-        $this->propertyAccessor = self::$kernel->getContainer()->get('property_accessor');
         $this->repository = DoctrineTestHelper::createTestEntityManager()->getRepository($this->entityClass);
         $this->resource = new Resource($this->entityClass);
     }
@@ -81,7 +67,6 @@ class OrderFilterTest extends KernelTestCase
      * @param array|null $properties Properties on which the filter may be enabled.
      * @param string     $url        URL.
      * @param string     $expected   Expected DQL query.
-     * @param array      $parameters Expected parameters of the DQL query.
      */
     public function testFilter($properties, $url, $expected)
     {

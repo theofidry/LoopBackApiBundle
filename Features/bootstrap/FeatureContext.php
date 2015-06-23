@@ -11,6 +11,7 @@
 
 use Behat\Behat\Context\Context;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy;
 
@@ -19,12 +20,22 @@ use Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class FeatureContext implements  Context
+class FeatureContext implements Context
 {
     /**
-     * @var \Doctrine\Common\Persistence\ObjectManager
+     * @var array
+     */
+    private $classes;
+
+    /**
+     * @var ObjectManager
      */
     private $manager;
+
+    /**
+     * @var SchemaTool
+     */
+    private $schemaTool;
 
     /**
      * Initializes context.

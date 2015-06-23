@@ -44,7 +44,7 @@ trait FilterTrait
      *
      * @param Request $request
      *
-     * @return array|null
+     * @return array
      */
     protected function extractProperties(Request $request)
     {
