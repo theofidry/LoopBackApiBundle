@@ -22,10 +22,6 @@ use Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy;
 class FeatureContext implements  Context
 {
     /**
-     * @var ManagerRegistry
-     */
-    private $doctrine;
-    /**
      * @var \Doctrine\Common\Persistence\ObjectManager
      */
     private $manager;
@@ -39,7 +35,6 @@ class FeatureContext implements  Context
      */
     public function __construct(ManagerRegistry $doctrine)
     {
-        $this->doctrine = $doctrine;
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
