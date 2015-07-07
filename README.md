@@ -26,7 +26,7 @@
     2. [gt(e)/lt(e)](Resources/doc/where-filter.md#gtelte)
     3. [between](Resources/doc/where-filter.md#between)
     4. [neq](Resources/doc/where-filter.md#neq)
-    15. [like/nlike](Resources/doc/where-filter.md#likenlike)
+    5. [like/nlike](Resources/doc/where-filter.md#likenlike)
 
 
 ## Install
@@ -55,6 +55,6 @@ public function registerBundles()
 
 This bundle is developed by [Théo FIDRY](https://github.com/theofidry).
 
-# License
+## License
 
 [![license](https://img.shields.io/badge/license-MIT-red.svg?style=flat-square)](LICENSE)

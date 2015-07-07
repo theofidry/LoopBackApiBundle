@@ -210,7 +210,7 @@ class WhereFilter extends AbstractFilter
             $parameter = $property;
         }
 
-        // Only particuliar case: the between operator
+        // Only particular case: the between operator
         if (self::PARAMETER_OPERATOR_BETWEEN === $operator
             && is_array($value)
             && 2 === count($value)
@@ -239,46 +239,48 @@ class WhereFilter extends AbstractFilter
 
         // Normalize $value before using it
         $value = $this->normalizeValue($property, $value);
+        $parameterValue = (self::PARAMETER_OPERATOR_LIKE === $operator || self::PARAMETER_OPERATOR_NLIKE === $operator)
+            ? sprintf('%%%s%%', $value)
+            : $value
+        ;
 
         switch ($operator) {
             case self::PARAMETER_OPERATOR_GT:
                 $queryExpr = $queryBuilder->expr()->gt(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_GTE:
                 $queryExpr = $queryBuilder->expr()->gte(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_LT:
                 $queryExpr = $queryBuilder->expr()->lt(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_LTE:
                 $queryExpr = $queryBuilder->expr()->lte(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                $queryBuilder->setParameter($parameter, $value);
                 break;
 
             case self::PARAMETER_OPERATOR_NEQ:
                 if (null === $value) {
-                    $queryExpr = $queryBuilder->expr()->isNotNull(sprintf('o.%s', $property));
+                    // Skip the set parameter that takes place after the switch case
+                    return $queryBuilder->expr()->isNotNull(sprintf('o.%s', $property));
                 } else {
                     $queryExpr = $queryBuilder->expr()->neq(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                    $queryBuilder->setParameter($parameter, $value);
                 }
                 break;
 
             case self::PARAMETER_OPERATOR_LIKE:
                 $queryExpr = $queryBuilder->expr()->like(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                $queryBuilder->setParameter($parameter, sprintf('%%%s%%', $value));
                 break;
 
             case self::PARAMETER_OPERATOR_NLIKE:
                 $queryExpr = $queryBuilder->expr()->notLike(sprintf('o.%s', $property), sprintf(':%s', $parameter));
-                $queryBuilder->setParameter($parameter, sprintf('%%%s%%', $value));
                 break;
+        }
+
+        if (null === $queryBuilder->getParameter($parameter)) {
+            $queryBuilder->setParameter($parameter, $parameterValue);
         }
 
         return $queryExpr;
@@ -313,31 +315,7 @@ class WhereFilter extends AbstractFilter
      */
     public function getDescription(ResourceInterface $resource)
     {
-        $description = [];
-        $metadata = $this->getClassMetadata($resource);
-
-        foreach ($metadata->getFieldNames() as $fieldName) {
-            $found = isset($this->properties[$fieldName]);
-            if ($found || null === $this->properties) {
-                $description[sprintf('filter[%s][%s]', $this->parameter, $fieldName)] = [
-                    'property' => $fieldName,
-                    'type' => $metadata->getTypeOfField($fieldName),
-                    'required' => false,
-                    'strategy' => self::STRATEGY_EXACT,
-                ];
-            }
-        }
-
-        foreach ($metadata->getAssociationNames() as $associationName) {
-            $description[sprintf('filter[%s][%s]', $this->parameter, $associationName)] = [
-                'property' => $associationName,
-                'type' => 'iri',
-                'required' => false,
-                'strategy' => self::STRATEGY_EXACT,
-            ];
-        }
-
-        return $description;
+        return [];
     }
 
     /**

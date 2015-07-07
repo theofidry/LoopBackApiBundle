@@ -5,7 +5,7 @@ default:
     suites:
         default:
             contexts:
-                - FeatureContext: { doctrine: "@doctrine" }
+                - FeatureContext: { doctrine: @doctrine }
                 - Behat\MinkExtension\Context\MinkContext
                 - Sanpi\Behatch\Context\RestContext
                 - Sanpi\Behatch\Context\JsonContext
@@ -18,7 +18,7 @@ default:
                 path:      Features/fixtures/SymfonyApp/AppKernel.php
                 bootstrap: Features/fixtures/SymfonyApp/bootstrap.php
         Behat\MinkExtension:
-            base_url: "http://example.com/"
+            base_url:
             sessions:
                 default:
                     symfony2: ~

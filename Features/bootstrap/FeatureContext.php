@@ -40,9 +40,7 @@ class FeatureContext implements Context
     /**
      * Initializes context.
      *
-     * Every scenario gets its own context instance.
-     * You can also pass arbitrary arguments to the
-     * context constructor through behat.yml.
+     * @param ManagerRegistry $doctrine
      */
     public function __construct(ManagerRegistry $doctrine)
     {
@@ -69,6 +67,8 @@ class FeatureContext implements Context
 
     /**
      * @Given there is :nb dummy objects
+     *
+     * @param int $nbr
      */
     public function thereIsDummyObjects($nbr)
     {
