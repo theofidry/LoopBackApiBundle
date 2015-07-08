@@ -89,7 +89,7 @@ REST syntax:
 
 ```
 ?filter[where][or][0][][field1]=val1&filter[where][or][0][][field2]=val2
-&filter[where][or][1][][field3]=val3&filter[where][or][1][]][field4]=val4
+&filter[where][or][1][][field3]=val3&filter[where][or][1][][field4]=val4
 ```
 
 ### `gt(e)`/`lt(e)`
