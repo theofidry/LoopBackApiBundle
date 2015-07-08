@@ -2,7 +2,7 @@
   "name": "theofidry/loopback-api-bundle",
   "type": "symfony-bundle",
   "description": "Loopback like Doctrine ORM filters for DunglasApiBundle.",
-  "keywords": ["REST", "API", "JSON", "JSON-LD", "Hydra", "LoopNack"],
+  "keywords": ["REST", "API", "JSON", "JSON-LD", "Hydra", "LoopBack"],
   "license": "MIT",
   "authors": [
     {
