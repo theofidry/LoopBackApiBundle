@@ -13,8 +13,8 @@
 
 1. [Install](#install)
 2. [Introduction](Resources/doc/introduction.md)
-3. [Order filters](Resources/doc/order-filter.md)
-4. [Where filters](Resources/doc/where-filter.md)
+3. [Order filter](Resources/doc/order-filter.md)
+4. [Where filter](Resources/doc/where-filter.md)
   1. [Special values](Resources/doc/where-filter.md#special-values)
     1. [Search on embedded relation property](Resources/doc/where-filter.md#search-on-embedded-relation-property)
     2. [Boolean values](Resources/doc/where-filter.md#boolean-values)
