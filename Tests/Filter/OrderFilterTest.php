@@ -18,6 +18,7 @@ use Fidry\LoopBackApiBundle\Filter\OrderFilter;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Class OrderFilterTest.
@@ -71,16 +72,18 @@ class OrderFilterTest extends KernelTestCase
     public function testFilter($properties, $url, $expected)
     {
         $request = Request::create($url, 'GET');
-        $filter = new OrderFilter($this->managerRegistry, 'order', $properties);
+        $requestStack = $this->prophesize(RequestStack::class);
+        $requestStack->getCurrentRequest()->willReturn($request);
+
+        $filter = new OrderFilter($this->managerRegistry, $requestStack->reveal(), 'order', $properties);
         $filter->initParameter('order');
         $queryBuilder = $this->getQueryBuilder();
 
-        $filter->apply($this->resource, $queryBuilder, $request);
-        $actual   = strtolower($queryBuilder->getQuery()->getDQL());
-        $expected = ('' === $expected)?
-            strtolower(sprintf('SELECT o FROM %s o', $this->entityClass)):
-            strtolower(sprintf('SELECT o FROM %s o ORDER BY %s', $this->entityClass, $expected))
-        ;
+        $filter->apply($this->resource, $queryBuilder);
+        $actual = strtolower($queryBuilder->getQuery()->getDQL());
+        $expected = ('' === $expected) ?
+            strtolower(sprintf('SELECT o FROM %s o', $this->entityClass)) :
+            strtolower(sprintf('SELECT o FROM %s o ORDER BY %s', $this->entityClass, $expected));
 
         $this->assertEquals($expected, $actual);
     }
@@ -104,21 +107,21 @@ class OrderFilterTest extends KernelTestCase
         $return[] = [
             null,
             '/api/dummies?filter[order][name]=asc',
-            'o.name asc'
+            'o.name asc',
         ];
 
         // Order on non existing property
         $return[] = [
             null,
             '/api/dummies?filter[order][unknown]=asc',
-            ''
+            '',
         ];
 
         // Order on allowed property
         $return[] = [
             ['name' => null],
             '/api/dummies?filter[order][name]=asc&filter[order][alias]=desc',
-            'o.name asc'
+            'o.name asc',
         ];
 
         return $return;

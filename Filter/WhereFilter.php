@@ -17,7 +17,7 @@ use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
 use Dunglas\ApiBundle\Api\ResourceInterface;
 use Dunglas\ApiBundle\Doctrine\Orm\Filter\AbstractFilter;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
@@ -43,6 +43,11 @@ class WhereFilter extends AbstractFilter
     const PARAMETER_NULL_VALUE = 'null';
 
     /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
      * @var IriConverterInterface
      */
     private $iriConverter;
@@ -55,25 +60,36 @@ class WhereFilter extends AbstractFilter
     /**
      * {@inheritdoc}
      */
+    /**
+     * @param ManagerRegistry           $managerRegistry
+     * @param RequestStack              $requestStack
+     * @param IriConverterInterface     $iriConverter
+     * @param PropertyAccessorInterface $propertyAccessor
+     * @param null|array                $properties       Null to allow filtering on all properties with the exact strategy or a map of property name with strategy.
+     */
     public function __construct(
         ManagerRegistry $managerRegistry,
+        RequestStack $requestStack,
         IriConverterInterface $iriConverter,
         PropertyAccessorInterface $propertyAccessor,
         array $properties = null
-    )
-    {
+    ) {
         parent::__construct($managerRegistry, $properties);
 
         $this->iriConverter = $iriConverter;
         $this->propertyAccessor = $propertyAccessor;
-        $this->properties = (null === $properties)? $properties: array_flip($properties);
+        $this->requestStack = $requestStack;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder, Request $request)
+    public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder)
     {
+        if (null === $request = $this->requestStack->getCurrentRequest()) {
+            return;
+        }
+
         $queryValues = $this->extractProperties($request);
         $metadata = $this->getClassMetadata($resource);
         $fieldNames = array_flip($metadata->getFieldNames());
@@ -125,7 +141,7 @@ class WhereFilter extends AbstractFilter
                             );
 
                             $queries = array_merge($queries, $expr);
-                            $count++;
+                            ++$count;
                         }
 
                         if (2 === count($queries)) {
@@ -152,7 +168,7 @@ class WhereFilter extends AbstractFilter
      * @param array        $fieldNames
      * @param string       $property
      * @param array|string $value
-     * @param string|null  $parameter If is string is used to construct the parameter to avoid parameter conflicts.
+     * @param string|null  $parameter    If is string is used to construct the parameter to avoid parameter conflicts.
      *
      * @return array
      */
@@ -199,7 +215,7 @@ class WhereFilter extends AbstractFilter
      * @param string       $property
      * @param string       $operator
      * @param string|array $value
-     * @param string|null  $parameter If is string is used to construct the parameter to avoid parameter conflicts.
+     * @param string|null  $parameter    If is string is used to construct the parameter to avoid parameter conflicts.
      *
      * @return Expr|null
      */
@@ -215,9 +231,9 @@ class WhereFilter extends AbstractFilter
             && is_array($value)
             && 2 === count($value)
         ) {
-            $value       = array_values($value);
+            $value = array_values($value);
             $paramBefore = sprintf(':between_before_%s', $parameter);
-            $paramAfter  = sprintf(':between_after_%s', $parameter);
+            $paramAfter = sprintf(':between_after_%s', $parameter);
 
             $queryExpr = $queryBuilder->expr()->between(
                 sprintf('o.%s', $property),
@@ -226,7 +242,7 @@ class WhereFilter extends AbstractFilter
             );
             $queryBuilder->setParameters([
                 $paramBefore => $value[0],
-                $paramAfter  => $value[1]
+                $paramAfter  => $value[1],
             ]);
 
             return $queryExpr;
@@ -234,15 +250,14 @@ class WhereFilter extends AbstractFilter
 
         // Expect $value to be a string
         if (false === is_string($value)) {
-            return null;
+            return;
         }
 
         // Normalize $value before using it
         $value = $this->normalizeValue($property, $value);
         $parameterValue = (self::PARAMETER_OPERATOR_LIKE === $operator || self::PARAMETER_OPERATOR_NLIKE === $operator)
             ? sprintf('%%%s%%', $value)
-            : $value
-        ;
+            : $value;
 
         switch ($operator) {
             case self::PARAMETER_OPERATOR_GT:
@@ -285,7 +300,7 @@ class WhereFilter extends AbstractFilter
 
         return $queryExpr;
     }
-    
+
     /**
      * Normalize the value. If the key is an ID, get the real ID value. If is null, set the value to null. Otherwise
      * return unchanged value.
@@ -302,7 +317,7 @@ class WhereFilter extends AbstractFilter
         }
 
         if (self::PARAMETER_NULL_VALUE === $value) {
-            return null;
+            return;
         }
 
         return $value;
@@ -325,7 +340,7 @@ class WhereFilter extends AbstractFilter
      *
      * @return string
      */
-    private function getFilterValueFromUrl($value)
+    protected function getFilterValueFromUrl($value)
     {
         try {
             if ($item = $this->iriConverter->getItemFromIri($value)) {

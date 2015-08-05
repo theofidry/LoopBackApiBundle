@@ -1,0 +1,3 @@
+disabled:
+    - empty_return
+    - unary_operators_spaces

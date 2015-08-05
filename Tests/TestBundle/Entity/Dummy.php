@@ -51,7 +51,7 @@ class Dummy
     public $dummyDate;
 
     /**
-     * @var boolean
+     * @var bool
      *
      * @ORM\Column(nullable=true)
      */
@@ -88,7 +88,7 @@ class Dummy
     public $relatedDummies;
 
     /**
-     * Constructor
+     * Constructor.
      */
     public function __construct()
     {

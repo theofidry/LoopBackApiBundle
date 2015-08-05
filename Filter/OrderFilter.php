@@ -11,10 +11,8 @@
 
 namespace Fidry\LoopBackApiBundle\Filter;
 
-use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\ResourceInterface;
 use Dunglas\ApiBundle\Doctrine\Orm\Filter\OrderFilter as DunglasOrderFilter;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class OrderFilter.
