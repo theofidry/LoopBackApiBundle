@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": ">=5.5",
-    "dunglas/api-bundle": "~1.0@beta"
+    "dunglas/api-bundle": "dev-master"
   },
   "require-dev": {
     "symfony/symfony": "~2.7",

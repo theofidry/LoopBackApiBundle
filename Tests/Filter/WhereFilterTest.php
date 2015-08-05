@@ -19,6 +19,7 @@ use Fidry\LoopBackApiBundle\Filter\WhereFilter;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
@@ -86,16 +87,24 @@ class WhereFilterTest extends KernelTestCase
     public function testFilter($properties, $url, $expected, $parameters = [])
     {
         $request = Request::create($url, 'GET');
-        $filter = new WhereFilter($this->managerRegistry, $this->iriConverter, $this->propertyAccessor, $properties);
+        $requestStack = $this->prophesize(RequestStack::class);
+        $requestStack->getCurrentRequest()->willReturn($request);
+
+        $filter = new WhereFilter(
+            $this->managerRegistry,
+            $requestStack->reveal(),
+            $this->iriConverter,
+            $this->propertyAccessor,
+            $properties
+        );
         $filter->initParameter('where');
         $queryBuilder = $this->getQueryBuilder();
 
-        $filter->apply($this->resource, $queryBuilder, $request);
-        $actual   = strtolower($queryBuilder->getQuery()->getDQL());
-        $expected = ('' === $expected)?
-            strtolower(sprintf('SELECT o FROM %s o', $this->entityClass)):
-            strtolower(sprintf('SELECT o FROM %s o WHERE %s', $this->entityClass, $expected))
-        ;
+        $filter->apply($this->resource, $queryBuilder);
+        $actual = strtolower($queryBuilder->getQuery()->getDQL());
+        $expected = ('' === $expected)
+            ? strtolower(sprintf('SELECT o FROM %s o', $this->entityClass))
+            : strtolower(sprintf('SELECT o FROM %s o WHERE %s', $this->entityClass, $expected));
 
         $this->assertEquals($expected, $actual);
         foreach ($parameters as $parameter => $value) {
@@ -124,22 +133,21 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][name]=test',
             'o.name = :name',
             [
-                'name' => 'test'
-            ]
+                'name' => 'test',
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][unknown]=test',
             '',
-            []
+            [],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[yolo][name]=test',
             '',
-            []
+            [],
         ];
-
 
         // Classical where on boolean
         $return[] = [
@@ -147,18 +155,17 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][isEnabled]=0',
             'o.isEnabled = :isEnabled',
             [
-                'isEnabled' => 0
-            ]
+                'isEnabled' => 0,
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][isEnabled]=1',
             'o.isEnabled = :isEnabled',
             [
-                'isEnabled' => 1
-            ]
+                'isEnabled' => 1,
+            ],
         ];
-
 
         // Classical where on DateTime
         //TODO: enable this test
@@ -173,19 +180,17 @@ class WhereFilterTest extends KernelTestCase
 //            'o.name = test'
 //        ];
 
-
         // Null value / Not null
         $return[] = [
             null,
             '/api/dummies?filter[where][name]=null',
-            'o.name IS NULL'
+            'o.name IS NULL',
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][name][neq]=null',
-            'o.name IS NOT NULL'
+            'o.name IS NOT NULL',
         ];
-
 
         // Empty string value
         $return[] = [
@@ -193,18 +198,17 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][name]=',
             'o.name = :name',
             [
-                'name' => ''
-            ]
+                'name' => '',
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][name][neq]=',
             'o.name <> :name',
             [
-                'name' => ''
-            ]
+                'name' => '',
+            ],
         ];
-
 
         // Empty integer value
         $return[] = [
@@ -212,18 +216,17 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][price]=',
             'o.price = :price',
             [
-                'price' => ''
-            ]
+                'price' => '',
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][neq]=',
             'o.price <> :price',
             [
-                'price' => ''
-            ]
+                'price' => '',
+            ],
         ];
-
 
         // Empty boolean value
         $return[] = [
@@ -231,18 +234,17 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][isEnabled]=',
             'o.isEnabled = :isEnabled',
             [
-                'isEnabled' => ''
-            ]
+                'isEnabled' => '',
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][isEnabled][neq]=',
             'o.isEnabled <> :isEnabled',
             [
-                'isEnabled' => ''
-            ]
+                'isEnabled' => '',
+            ],
         ];
-
 
         // gt(e)/lt(e) operator
         $return[] = [
@@ -250,34 +252,33 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][price][gt]=40',
             'o.price > :price',
             [
-                'price' => 40
-            ]
+                'price' => 40,
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][gte]=40',
             'o.price >= :price',
             [
-                'price' => 40
-            ]
+                'price' => 40,
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][lt]=40',
             'o.price < :price',
             [
-                'price' => 40
-            ]
+                'price' => 40,
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][price][lte]=40',
             'o.price <= :price',
             [
-                'price' => 40
-            ]
+                'price' => 40,
+            ],
         ];
-
 
         // Between operator
         $return[] = [
@@ -286,10 +287,9 @@ class WhereFilterTest extends KernelTestCase
             'o.price BETWEEN :between_before_price AND :between_after_price',
             [
                 'between_before_price' => 0,
-                'between_after_price'  => 7
-            ]
+                'between_after_price'  => 7,
+            ],
         ];
-
 
         // (n)like operator
         $return[] = [
@@ -297,16 +297,16 @@ class WhereFilterTest extends KernelTestCase
             '/api/dummies?filter[where][name][like]=test',
             'o.name LIKE :name',
             [
-                'name' => '%test%'
-            ]
+                'name' => '%test%',
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][name][nlike]=test',
             'o.name NOT LIKE :name',
             [
-                'name' => '%test%'
-            ]
+                'name' => '%test%',
+            ],
         ];
 
 //
@@ -317,16 +317,16 @@ class WhereFilterTest extends KernelTestCase
             'o.name = :or_name00 OR o.price = :or_price01',
             [
                 'or_name00'  => 'test',
-                'or_price01' => 20
-            ]
+                'or_price01' => 20,
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][or][0][][name][neq]=null&filter[where][or][0][][price]=20',
             'o.name IS NOT NULL OR o.price = :or_price01',
             [
-                'or_price01' => 20
-            ]
+                'or_price01' => 20,
+            ],
         ];
         $return[] = [
             null,
@@ -336,14 +336,14 @@ class WhereFilterTest extends KernelTestCase
                 'or_name00'  => 'test',
                 'or_name01'  => 'pol',
                 'or_price10' => 20,
-                'or_name11'  => 'toto'
-            ]
+                'or_name11'  => 'toto',
+            ],
         ];
         $return[] = [
             null,
             '/api/dummies?filter[where][or][0][name]=test&filter[where][or][0][][price]=20',
             '',
-            []
+            [],
         ];
 
         //TODO: test the config
