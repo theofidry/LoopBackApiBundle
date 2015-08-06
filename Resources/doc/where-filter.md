@@ -114,7 +114,7 @@ Note: the keys `0` and `1` are optional, unlike the `or` operator, only two valu
 Examples:
 * looking for names which are not null: `?filter[where][name][neq]=null`
 * looking for names which are not empty: `?filter[where][name][neq]=`
-* looking for names which are not empty: `?filter[where][name][neq]=`
+* looking for names which are not empty: `?filter[where][name][neq]=""`
 * looking for names which are not equal to a given value: `?filter[where][name][neq]=a%20name`
 
 ### `like`/`nlike`
