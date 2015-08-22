@@ -1,0 +1,28 @@
+Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy:
+    # first ASC (no null)
+    dummy_first_asc:
+        dummyDate: <(new DateTime())->setTimestamp(1430187830)->setTimezone(new DateTimeZone('UTC'))> # 2015-04-28T02:05:50+00:00 | UTC
+        enabled: true
+        name: AAA
+        price: 10.99
+
+    # null
+    dummy_null:
+        dummyDate: <(new DateTime())->setTimestamp(1430186750)->setTimezone(new DateTimeZone('UTC'))> # 2015-04-28T02:23:50+00:00 | UTC
+        enabled: ~
+        name: ~
+        price: ~
+
+    # empty
+    dummy_empty:
+        # dummyDate: ~ Commented to avoid calling setter with null value
+        enabled: ~
+        name: ''
+        price: ~
+
+    # last ASC (no null)
+    dummy_last_asc:
+        dummyDate: <(new DateTime())->setTimestamp(1461810230)->setTimezone(new DateTimeZone('UTC'))> # 2016-04-28T02:23:50+00:00 | UTC
+        enabled: false
+        name: ZZZ
+        price: 120

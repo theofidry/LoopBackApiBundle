@@ -9,18 +9,18 @@
  * file that was distributed with this source code.
  */
 
-use Behat\Behat\Context\Context;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy;
+use PHPUnit_Framework_Assert as PHPUnit;
+use Sanpi\Behatch\Json\Json;
+use Sanpi\Behatch\Json\JsonInspector;
 
 /**
- * Class FeatureContext.
- *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class FeatureContext implements Context
+class FeatureContext extends \Behat\MinkExtension\Context\RawMinkContext
 {
     /**
      * @var array
@@ -47,6 +47,7 @@ class FeatureContext implements Context
         $this->manager = $doctrine->getManager();
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
+        $this->inspector = new JsonInspector('javascript');
     }
 
     /**
@@ -58,11 +59,20 @@ class FeatureContext implements Context
     }
 
     /**
-     * @AfterScenario @dropSchema
+     * @BeforeScenario @dropSchema
      */
     public function dropDatabase()
     {
         $this->schemaTool->dropSchema($this->classes);
+    }
+
+    /**
+     * @Given the database is empty
+     */
+    public function emptyDatabase()
+    {
+        $this->dropDatabase();
+        $this->createDatabase();
     }
 
     /**
@@ -81,5 +91,51 @@ class FeatureContext implements Context
         }
 
         $this->manager->flush();
+    }
+
+    /**
+     * Checks that given JSON node is null
+     *
+     * @Then the JSON node :node should be null
+     */
+    public function theJsonNodeShouldBeNull($node)
+    {
+        $actual = $this->getJsonNodeValue($node);
+        PHPUnit::assertNull($actual, sprintf('The node value is `%s`', json_encode($actual)));
+    }
+
+    /**
+     * @Then the JSON node :node should be equal to the boolean :value
+     */
+    public function theJsonNodeShouldBeEmpty($node, $value)
+    {
+        $actual = $this->getJsonNodeValue($node);
+
+        if ('false' === $value) {
+            $value = false;
+        } else {
+            $value = (bool) $value;
+        }
+
+        PHPUnit::assertEquals($value, $actual, sprintf('The node value is `%s`', json_encode($actual)));
+    }
+
+    /**
+     * @param string $node JSON node.
+     *
+     * @return mixed JSON node value.
+     */
+    private function getJsonNodeValue($node)
+    {
+        $json = $this->getJson();
+        return $this->inspector->evaluate($json, $node);
+    }
+
+    /**
+     * @return Json Get JSON content of the response.
+     */
+    private function getJson()
+    {
+        return new Json($this->getSession()->getPage()->getContent());
     }
 }

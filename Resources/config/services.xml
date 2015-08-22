@@ -5,11 +5,18 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
+        <service id="loopback_api.resource" class="Dunglas\ApiBundle\Api\Resource" public="false" abstract="true" lazy="true">
+            <call method="initFilters">
+                <argument type="collection">
+                    <argument type="service" id="loopback_api.filter.order_filter" />
+                    <argument type="service" id="loopback_api.filter.where_filter" />
+                </argument>
+            </call>
+        </service>
+
         <service id="loopback_api.filter.where_filter"
                  parent="api.doctrine.orm.search_filter"
-                 class="Fidry\LoopBackApiBundle\Filter\WhereFilter"
-                 public="false"
-                 abstract="true">
+                 class="Fidry\LoopBackApiBundle\Filter\WhereFilter" >
             <call method="initParameter">
                  <argument>%loopback.parameter.search_filter%</argument>
             </call>
@@ -17,9 +24,7 @@
 
         <service id="loopback_api.filter.order_filter"
                  parent="api.doctrine.orm.order_filter"
-                 class="Fidry\LoopBackApiBundle\Filter\OrderFilter"
-                 public="false"
-                 abstract="true">
+                 class="Fidry\LoopBackApiBundle\Filter\OrderFilter" >
             <call method="initParameter">
                  <argument>%loopback.parameter.order_filter%</argument>
             </call>

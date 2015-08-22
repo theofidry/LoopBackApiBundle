@@ -12,6 +12,7 @@
 namespace Fidry\LoopBackApiBundle\Filter;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
@@ -58,9 +59,6 @@ class WhereFilter extends AbstractFilter
     private $propertyAccessor;
 
     /**
-     * {@inheritdoc}
-     */
-    /**
      * @param ManagerRegistry           $managerRegistry
      * @param RequestStack              $requestStack
      * @param IriConverterInterface     $iriConverter
@@ -87,13 +85,14 @@ class WhereFilter extends AbstractFilter
     public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder)
     {
         if (null === $request = $this->requestStack->getCurrentRequest()) {
-            return;
+            return null;
         }
 
         $queryValues = $this->extractProperties($request);
         $metadata = $this->getClassMetadata($resource);
-        $fieldNames = array_flip($metadata->getFieldNames());
         $queryExpr = [];
+        $aliases = [];
+        $associationsMetadata = [];
 
         // Retrieve all doctrine query expressions
         foreach ($queryValues as $key => $value) {
@@ -134,7 +133,9 @@ class WhereFilter extends AbstractFilter
                             // At this point the value may be either a value or an array (for operators)
                             $expr = $this->handleFilter(
                                 $queryBuilder,
-                                $fieldNames,
+                                $metadata,
+                                $aliases,
+                                $associationsMetadata,
                                 $property,
                                 $dataSetElem[$property],
                                 sprintf('or_%s%d%d', $property, $index, $count)
@@ -150,77 +151,126 @@ class WhereFilter extends AbstractFilter
                     }
                 }
             } else {
-                $queryExpr = array_merge($queryExpr, $this->handleFilter($queryBuilder, $fieldNames, $key, $value));
+                $queryExpr = array_merge(
+                    $queryExpr,
+                    $this->handleFilter($queryBuilder, $metadata, $aliases, $associationsMetadata, $key, $value)
+                );
             }
         }
 
         foreach ($queryExpr as $expr) {
             $queryBuilder->andWhere($expr);
         }
-
-        return $queryBuilder;
     }
 
     /**
-     * Handle the given filter. At this point, it's unclear if the value passed is the real value or an operator.
+     * Handles the given filter to call the proper operator. At this point, it's unclear if the value passed is the real
+     * value operator.
      *
-     * @param QueryBuilder $queryBuilder
-     * @param array        $fieldNames
-     * @param string       $property
-     * @param array|string $value
-     * @param string|null  $parameter    If is string is used to construct the parameter to avoid parameter conflicts.
+     * @param QueryBuilder    $queryBuilder
+     * @param ClassMetadata   $resourceMetadata
+     * @param string[]        $aliases
+     * @param ClassMetadata[] $associationsMetadata
+     * @param string          $property
+     * @param array|string    $value
+     * @param string|null     $parameter If is string is used to construct the parameter to avoid parameter conflicts.
      *
      * @return array
      */
-    private function handleFilter(QueryBuilder $queryBuilder, array $fieldNames, $property, $value, $parameter = null)
-    {
+    private function handleFilter(
+        QueryBuilder $queryBuilder,
+        ClassMetadata $resourceMetadata,
+        array $aliases,
+        array $associationsMetadata,
+        $property,
+        $value,
+        $parameter = null
+    ) {
         $queryExpr = [];
 
-        // $key is a property
-        if (true === isset($fieldNames[$property])) {
+        /*
+         * simple (case 1):
+         * $property = name
+         *
+         * relation (case 2):
+         * $property = relatedDummy_name
+         * $property = relatedDymmy_id
+         * $property = relatedDummy_user_id
+         * $property = relatedDummy_user_name
+         */
+        if (false !== strpos($property, '.')) {
+            $explodedProperty = explode('.', $property);
+        } else {
+            $explodedProperty = explode('_', $property);
+        }
+        // we are in case 2
+        $property = array_pop($explodedProperty);
+        $alias = $this->getResourceAliasForProperty($aliases, $explodedProperty);
+        $aliasMetadata = $this->getAssociationMetadataForProperty(
+            $resourceMetadata,
+            $associationsMetadata,
+            $explodedProperty
+        );
+
+        if (true === $aliasMetadata->hasField($property)) {
             // Entity has the property
             if (is_array($value)) {
                 foreach ($value as $operator => $operand) {
                     // Case where there is an operator
-                    $queryExpr[] = $this->handleOperator($queryBuilder, $property, $operator, $operand, $parameter);
+                    $queryExpr[] = $this->handleOperator(
+                        $queryBuilder,
+                        $alias,
+                        $aliasMetadata,
+                        $property,
+                        $operator,
+                        $operand,
+                        $parameter
+                    );
                 }
             } else {
                 // Simple where
-                if (self::PARAMETER_ID_KEY === $property) {
-                    $value = $this->getFilterValueFromUrl($value);
-                }
-
-                $value = $this->normalizeValue($property, $value);
+                $value = $this->normalizeValue($aliasMetadata, $property, $value);
                 if (null === $value) {
-                    $queryExpr[] = $queryBuilder->expr()->isNull(sprintf('o.%s', $property));
+                    $queryExpr[] = $queryBuilder->expr()->isNull(sprintf('%s.%s', $alias, $property));
                 } else {
                     if (null === $parameter) {
                         $parameter = $property;
                     }
-                    $queryExpr[] = $queryBuilder->expr()->eq(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                    $queryExpr[] = $queryBuilder->expr()->eq(
+                        sprintf('%s.%s', $alias, $property),
+                        sprintf(':%s', $parameter)
+                    );
                     $queryBuilder->setParameter($parameter, $value);
                 }
             }
-        } else {
-            // TODO: handle association
         }
 
         return $queryExpr;
     }
 
     /**
-     * Get the proper query expression for the set of data given.
+     * Gets the proper query expression for the set of data given.
      *
-     * @param QueryBuilder $queryBuilder
-     * @param string       $property
-     * @param string       $operator
-     * @param string|array $value
-     * @param string|null  $parameter    If is string is used to construct the parameter to avoid parameter conflicts.
+     * @param QueryBuilder  $queryBuilder
+     * @param string        $alias     alias of the entity to which belongs the property
+     * @param ClassMetadata $aliasMetadata
+     * @param string        $property
+     * @param string        $operator
+     * @param string|array  $value
+     * @param string|null   $parameter If is string is used to construct the parameter to avoid parameter conflicts.
      *
      * @return Expr|null
      */
-    private function handleOperator(QueryBuilder $queryBuilder, $property, $operator, $value, $parameter = null)
-    {
+    private function handleOperator(
+        QueryBuilder $queryBuilder,
+        $alias,
+        ClassMetadata $aliasMetadata,
+        $property,
+        $operator,
+        $value,
+        $parameter =
+        null
+    ) {
         $queryExpr = null;
         if (null === $parameter) {
             $parameter = $property;
@@ -236,7 +286,7 @@ class WhereFilter extends AbstractFilter
             $paramAfter = sprintf(':between_after_%s', $parameter);
 
             $queryExpr = $queryBuilder->expr()->between(
-                sprintf('o.%s', $property),
+                sprintf('%s.%s', $alias, $property),
                 $paramBefore,
                 $paramAfter
             );
@@ -250,47 +300,50 @@ class WhereFilter extends AbstractFilter
 
         // Expect $value to be a string
         if (false === is_string($value)) {
-            return;
+            return null;
         }
 
         // Normalize $value before using it
-        $value = $this->normalizeValue($property, $value);
+        $value = $this->normalizeValue($aliasMetadata, $property, $value);
         $parameterValue = (self::PARAMETER_OPERATOR_LIKE === $operator || self::PARAMETER_OPERATOR_NLIKE === $operator)
             ? sprintf('%%%s%%', $value)
             : $value;
 
         switch ($operator) {
             case self::PARAMETER_OPERATOR_GT:
-                $queryExpr = $queryBuilder->expr()->gt(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryExpr = $queryBuilder->expr()->gt(sprintf('%s.%s', $alias, $property), sprintf(':%s', $parameter));
                 break;
 
             case self::PARAMETER_OPERATOR_GTE:
-                $queryExpr = $queryBuilder->expr()->gte(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryExpr = $queryBuilder->expr()->gte(sprintf('%s.%s', $alias, $property), sprintf(':%s',
+                    $parameter));
                 break;
 
             case self::PARAMETER_OPERATOR_LT:
-                $queryExpr = $queryBuilder->expr()->lt(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryExpr = $queryBuilder->expr()->lt(sprintf('%s.%s', $alias, $property), sprintf(':%s', $parameter));
                 break;
 
             case self::PARAMETER_OPERATOR_LTE:
-                $queryExpr = $queryBuilder->expr()->lte(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryExpr = $queryBuilder->expr()->lte(sprintf('%s.%s', $alias, $property), sprintf(':%s',
+                    $parameter));
                 break;
 
             case self::PARAMETER_OPERATOR_NEQ:
                 if (null === $value) {
                     // Skip the set parameter that takes place after the switch case
-                    return $queryBuilder->expr()->isNotNull(sprintf('o.%s', $property));
+                    return $queryBuilder->expr()->isNotNull(sprintf('%s.%s', $alias, $property));
                 } else {
-                    $queryExpr = $queryBuilder->expr()->neq(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                    $queryExpr = $queryBuilder->expr()->neq(sprintf('%s.%s', $alias, $property), sprintf(':%s', $parameter));
                 }
                 break;
 
             case self::PARAMETER_OPERATOR_LIKE:
-                $queryExpr = $queryBuilder->expr()->like(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryExpr = $queryBuilder->expr()->like(sprintf('%s.%s', $alias, $property), sprintf(':%s',
+                    $parameter));
                 break;
 
             case self::PARAMETER_OPERATOR_NLIKE:
-                $queryExpr = $queryBuilder->expr()->notLike(sprintf('o.%s', $property), sprintf(':%s', $parameter));
+                $queryExpr = $queryBuilder->expr()->notLike(sprintf('%s.%s', $alias, $property), sprintf(':%s', $parameter));
                 break;
         }
 
@@ -302,22 +355,39 @@ class WhereFilter extends AbstractFilter
     }
 
     /**
-     * Normalize the value. If the key is an ID, get the real ID value. If is null, set the value to null. Otherwise
+     * Normalizes the value. If the key is an ID, get the real ID value. If is null, set the value to null. Otherwise
      * return unchanged value.
      *
-     * @param string $property
-     * @param string $value
+     * @param ClassMetadata $metadata
+     * @param string        $property
+     * @param string        $value
      *
-     * @return string|null
+     * @return null|string
      */
-    private function normalizeValue($property, $value)
+    private function normalizeValue(ClassMetadata $metadata, $property, $value)
     {
         if (self::PARAMETER_ID_KEY === $property) {
             return $this->getFilterValueFromUrl($value);
         }
 
         if (self::PARAMETER_NULL_VALUE === $value) {
-            return;
+            return null;
+        }
+
+        switch ($metadata->getTypeOfField($property)) {
+            case 'boolean':
+                return (bool) $value;
+
+            case 'integer':
+                return (int) $value;
+
+            case 'float':
+                return (float) $value;
+
+            case 'datetime':
+                // the input has the format `2015-04-28T02:23:50 00:00`, transform it to match the database format
+                // `2015-04-28 02:23:50`
+                return preg_replace('/(\d{4}(-\d{2}){2})T(\d{2}(:\d{2}){2}) \d{2}:\d{2}/', '$1 $3', $value);
         }
 
         return $value;
@@ -351,5 +421,115 @@ class WhereFilter extends AbstractFilter
         }
 
         return $value;
+    }
+
+    /**
+     * Gets the alias used for the entity to which the property belongs.
+     *
+     * @example
+     *  $property was `name`
+     *  $explodedProperty then is []
+     *  => 'o'
+     *
+     *  $property was `relatedDummy_name`
+     *  $explodedProperty then is ['relatedDummy']
+     *  => WhereFilter_relatedDummyAlias
+     *
+     *  $property was `relatedDummy_anotherDummy_name`
+     *  $explodedProperty then is ['relatedDummy', 'anotherDummy']
+     *  => WhereFilter_relatedDummy_anotherDummyAlias
+     *
+     * @param string[] $aliases Array containing all the properties for each an alias is used. The key is the
+     *                          property and the value the actual alias.
+     * @param string[] $explodedProperty
+     *
+     * @return string alias
+     */
+    private function getResourceAliasForProperty(array &$aliases, array $explodedProperty)
+    {
+        if (0 === count($explodedProperty)) {
+            return 'o';
+        }
+
+        foreach ($explodedProperty as $property) {
+            if (false === isset($aliases[$property])) {
+                $aliases[$property] = sprintf('WhereFilter_%sAlias', implode('_', $explodedProperty));
+            }
+        }
+
+        return $aliases[end($explodedProperty)];
+    }
+
+    /**
+     * Gets the metadata to which belongs the property.
+     *
+     * @example
+     *  $property was `name`
+     *  $explodedProperty then is []
+     *  => $resourceMetadata
+     *
+     *  $property was `relatedDummy_name`
+     *  $explodedProperty then is ['relatedDummy']
+     *  => metadata of relatedDummy
+     *
+     *  $property was `relatedDummy_anotherDummy_name`
+     *  $explodedProperty then is ['relatedDummy', 'anotherDummy']
+     *  => metadata of anotherDummy
+     *
+     * @param ClassMetadata   $resourceMetadata
+     * @param ClassMetadata[] $associationsMetadata
+     * @param array           $explodedProperty
+     *
+     * @return ClassMetadata
+     */
+    private function getAssociationMetadataForProperty(
+        ClassMetadata $resourceMetadata,
+        array &$associationsMetadata,
+        array
+        $explodedProperty
+    ) {
+        if (0 === count($explodedProperty)) {
+            return $resourceMetadata;
+        }
+
+        $parentResourceMetadata = $resourceMetadata;
+        foreach ($explodedProperty as $index => $property) {
+            if (1 <= $index) {
+                $parentResourceMetadata = $associationsMetadata[$explodedProperty[$index - 1]];
+            }
+
+            if (false === $parentResourceMetadata->hasAssociation($property)) {
+                throw new \RuntimeException(sprintf(
+                    'Class %s::%s is not an association.',
+                    $parentResourceMetadata->getName
+                    (),
+                    $property)
+                );
+            }
+
+            if (false === isset($associationsMetadata[$property])) {
+                $associationsMetadata[$property] = $this->getMetadata(
+                    $parentResourceMetadata->getAssociationTargetClass($property)
+                );
+            }
+        }
+
+        return $associationsMetadata[end($explodedProperty)];
+    }
+
+    /**
+     * Gets class metadata for the given class.
+     *
+     * @param string $class
+     *
+     * @return ClassMetadata
+     */
+    private function getMetadata($class)
+    {
+        return $this
+            ->managerRegistry
+            ->getManagerForClass($class)
+            ->getClassMetadata($class)
+        ;
     }
 }

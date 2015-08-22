@@ -46,6 +46,13 @@ class RelatedDummy
     protected $symfony = 'symfony';
 
     /**
+     * @var AnotherDummy
+     *
+     * @ORM\ManyToOne(targetEntity="AnotherDummy")
+     */
+    public $anotherDummy;
+
+    /**
      * @return mixed
      */
     public function getId()

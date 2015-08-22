@@ -9,6 +9,12 @@
  * file that was distributed with this source code.
  */
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Dunglas\ApiBundle\DunglasApiBundle;
+use Fidry\LoopBackApiBundle\LoopBackApiBundle;
+use Fidry\LoopBackApiBundle\Tests\TestBundle\TestBundle;
+use Hautelook\AliceBundle\HautelookAliceBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel;
 
@@ -25,11 +31,12 @@ class AppKernel extends Kernel
     public function registerBundles()
     {
         return [
-            new \Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
-            new \Dunglas\ApiBundle\DunglasApiBundle(),
-            new \Fidry\LoopBackApiBundle\LoopBackApiBundle(),
-            new \Fidry\LoopBackApiBundle\Tests\TestBundle\TestBundle(),
-            new \Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
+            new DoctrineBundle(),
+            new DunglasApiBundle(),
+            new HautelookAliceBundle(),
+            new LoopBackApiBundle(),
+            new TestBundle(),
+            new FrameworkBundle(),
         ];
     }
 

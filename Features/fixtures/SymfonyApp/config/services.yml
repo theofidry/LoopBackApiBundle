@@ -1,25 +1,10 @@
 services:
-    resource.search_filter:
-        parent: loopback_api.filter.search_filter
-
-    resource.order_filter:
-        parent: loopback_api.filter.order_filter
-
-    resource.filtered:
-        parent:          api.resource
-        calls:
-            - method:    addFilter
-              arguments: [ @resource.search_filter ]
-            - method:    addFilter
-              arguments: [ @resource.order_filter ]
-
     my_dummy_resource:
-        parent:    resource.filtered
-        arguments: [ Fidry\LoopBackApiBundle\AppBundle\Entity\Dummy ]
-        calls:
+        parent:    loopback_api.resource
+        arguments: [ Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy ]
         tags:      [ { name: api.resource } ]
 
     my_related_dummy_resource:
-        parent:    resource.filtered
-        arguments: [ Fidry\LoopBackApiBundle\AppBundle\Entity\RelatedDummy ]
+        parent:    loopback_api.resource
+        arguments: [ Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\RelatedDummy ]
         tags:      [ { name: api.resource } ]
