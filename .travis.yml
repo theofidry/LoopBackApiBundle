@@ -25,5 +25,6 @@ install:
     - rm -rf Features/SymfonyApp/cache/*
 
 script:
-    - vendor/bin/behat
+    - php console help
     - vendor/bin/phpunit
+    - vendor/bin/behat
