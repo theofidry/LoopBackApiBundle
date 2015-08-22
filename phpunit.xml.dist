@@ -11,6 +11,11 @@
         <server name="KERNEL_DIR" value="Features/fixtures/SymfonyApp/" />
     </php>
 
+    <logging>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="true" />
+        <log type="coverage-clover" target="coverage.xml" />
+    </logging>
+
     <testsuites>
         <testsuite name="LoopBackApiBundle Test Suite">
             <directory suffix="Test.php">Tests</directory>

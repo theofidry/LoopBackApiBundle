@@ -5,6 +5,7 @@
 [![SensioLabsInsight](https://img.shields.io/sensiolabs/i/e7cbcdb9-f024-43e0-b7ba-7a002949aa98.svg?style=flat-square)](https://insight.sensiolabs.com/projects/e7cbcdb9-f024-43e0-b7ba-7a002949aa98)
 [![Dependency Status](https://www.versioneye.com/user/projects/55887c45306662001a0000ce/badge.svg?style=flat)](https://www.versioneye.com/user/projects/55887c45306662001a0000ce)
 [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/theofidry/LoopBackApiBundle.svg?style=flat-square)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master)
+[![Code Coverage](https://img.shields.io/scrutinizer/coverage/g/theofidry/LoopBackApiBundle.svg?b=master&style=flat-square)](https://scrutinizer-ci.com/g/theofidry/LoopBackApiBundle/?branch=master)
 
 [LoopBack](http://loopback.io/) like Doctrine ORM filters for [DunglasApiBundle](https://github.com/dunglas/DunglasApiBundle).
 
