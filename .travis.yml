@@ -23,8 +23,12 @@ install:
     - composer install
     - composer self-update
     - rm -rf Features/SymfonyApp/cache/*
+    - bash -c 'if ([ "hhvm" != "$TRAVIS_PHP_VERSION" ] && [ "hhvm-nightly" != "$TRAVIS_PHP_VERSION" ] && [ "nightly" != "$TRAVIS_PHP_VERSION" ]); then wget https://scrutinizer-ci.com/ocular.phar; fi;'
 
 script:
     - php console help
     - vendor/bin/phpunit
     - vendor/bin/behat
+
+after_script:
+  - bash -c 'if ([ "hhvm" != "$TRAVIS_PHP_VERSION" ] && [ "hhvm-nightly" != "$TRAVIS_PHP_VERSION" ] && [ "nightly" != "$TRAVIS_PHP_VERSION" ]); then php ocular.phar code-coverage:upload --format=php-clover coverage.xml; fi;'
