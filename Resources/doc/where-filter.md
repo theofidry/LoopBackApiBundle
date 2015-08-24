@@ -7,7 +7,8 @@ Where filters are used to filter a collection by applying a mask (making match s
 REST Syntax:
 
 ```
-?filter[where][property][op]=value
+?filter[where][property]=value     # Will operate an exact search match
+?filter[where][property][op]=value # Depends of the operator
 ```
 
 where `property` is the name of the property, `op` the operator and `value` takes the value wished (case sensitive). The value is by default a `string`. If you wish to test a `boolean` value, test it against `0` (`false`) or `1` (`true`) - of course if the property is a number, it will be tested against a number and not against a boolean value!
@@ -41,7 +42,7 @@ To search for value `null` just use `null`!
 
 Example: `url?filter[where][property][op]=null`
 
-Note: this feature has a drawback, it becomes impossible to search for a string value `"null"`.
+Note: It is impossible to search for a string value `"null"`.
 
 ### Empty values
 
