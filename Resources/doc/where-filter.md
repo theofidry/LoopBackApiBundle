@@ -34,7 +34,12 @@ Example: `url?filter[where][booleanProperty]=1`
 
 The date value is a date string format which must be understood by [`\DateTime`](http://php.net/manual/fr/datetime.construct.php).
 
-Example: `url?filter[where][property][op]=2015-04-28`
+Examples:
+
+```
+url?filter[where][dateProperty][like]=2015-04-28
+url?filter[where][dateProperty]=2015-04-28T02:05:50+00:00
+```
 
 ### Null values
 
