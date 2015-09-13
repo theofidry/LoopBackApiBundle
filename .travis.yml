@@ -27,7 +27,7 @@ install:
 
 script:
     - php console help
-    - vendor/bin/phpunit
+#    - vendor/bin/phpunit
     - vendor/bin/behat
 
 after_script:
