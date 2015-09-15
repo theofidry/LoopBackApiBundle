@@ -4,34 +4,30 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.7/phpunit.xsd"
          backupGlobals="false"
-         bootstrap="Features/fixtures/SymfonyApp/bootstrap.php"
-         colors="true"
-        >
+         bootstrap="tests/Functional/bootstrap.php"
+         colors="true">
+
     <php>
-        <server name="KERNEL_DIR" value="Features/fixtures/SymfonyApp/" />
+        <server name="KERNEL_DIR" value="tests/Functional" />
     </php>
 
     <logging>
-        <log type="coverage-text" target="php://stdout" showUncoveredFiles="true" />
         <log type="coverage-clover" target="coverage.xml" />
     </logging>
 
     <testsuites>
         <testsuite name="LoopBackApiBundle Test Suite">
-            <directory suffix="Test.php">Tests</directory>
-            <exclude>
-                <directory>Features</directory>
-                <directory>Resources</directory>
-                <directory>Tests/TestBundle</directory>
-            </exclude>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
     <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">Tests</directory>
+        <whitelist>
+            <directory>.</directory>
             <exclude>
-                <directory suffix=".php">Tests/TestBundle</directory>
+                <directory>vendor</directory>
+                <directory>tests</directory>
+                <directory>src/Resources</directory>
             </exclude>
         </whitelist>
     </filter>

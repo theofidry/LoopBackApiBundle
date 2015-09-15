@@ -1,4 +1,5 @@
 vendor/
 composer.lock
-features/fixtures/SymfonyApp/cache/*
-features/fixtures/SymfonyApp/logs/*
+tests/Functional/cache/*
+tests/Functional/logs/*
+coverage.xml

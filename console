@@ -14,8 +14,7 @@
 
 set_time_limit(0);
 
-require_once __DIR__.'/Features/fixtures/SymfonyApp/bootstrap.php';
-require_once __DIR__.'/Features/fixtures/SymfonyApp/AppKernel.php';
+require_once __DIR__.'/tests/Functional/bootstrap.php';
 
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
