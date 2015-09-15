@@ -1,10 +1,10 @@
 services:
     my_dummy_resource:
         parent:    loopback_api.resource
-        arguments: [ Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy ]
+        arguments: [ Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity\Dummy ]
         tags:      [ { name: api.resource } ]
 
     my_related_dummy_resource:
         parent:    loopback_api.resource
-        arguments: [ Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\RelatedDummy ]
+        arguments: [ Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity\RelatedDummy ]
         tags:      [ { name: api.resource } ]

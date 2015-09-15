@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Fidry\LoopBackApiBundle\Tests\TestBundle\Entity;
+namespace Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity
  */
-class Dummy
+class AnotherDummy
 {
     /**
      * @var int The id.
@@ -33,6 +33,14 @@ class Dummy
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
+
+    /**
+     * @var string The dummy name alias.
+     *
+     * @ORM\Column(nullable=true)
+     * @Iri("https://schema.org/alternateName")
+     */
+    private $alias;
 
     /**
      * @var \DateTime A dummy date.
@@ -45,14 +53,15 @@ class Dummy
     /**
      * @var bool
      *
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(nullable=true)
      */
-    public $enabled;
+    public $isEnabled;
 
     /**
      * @var string The dummy name.
      *
-     * @ORM\Column(nullable=true)
+     * @ORM\Column
+     * @Assert\NotBlank
      * @Iri("http://schema.org/name")
      */
     private $name;
@@ -111,6 +120,22 @@ class Dummy
     }
 
     /**
+     * @param $alias
+     */
+    public function setAlias($alias)
+    {
+        $this->alias = $alias;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->alias;
+    }
+
+    /**
      * @param \DateTime $dummyDate
      */
     public function setDummyDate(\DateTime $dummyDate)
@@ -133,7 +158,7 @@ class Dummy
      */
     public function disable()
     {
-        $this->enabled = false;
+        $this->isEnabled = false;
 
         return $this;
     }
@@ -145,7 +170,7 @@ class Dummy
      */
     public function enable()
     {
-        $this->enabled = true;
+        $this->isEnabled = true;
 
         return $this;
     }
@@ -157,7 +182,7 @@ class Dummy
      */
     public function isEnabled()
     {
-        return $this->enabled;
+        return $this->isEnabled;
     }
 
     /**

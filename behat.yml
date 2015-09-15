@@ -10,12 +10,7 @@ default:
             paths: [ %paths.base%/Features ]
             contexts:
                 - FeatureContext: { doctrine: @doctrine }
-                - Fidry\AliceFixturesExtension\Context\AliceContext:
-                      kernel: @kernel
-                      finder: @hautelook_alice.finder
-                      loader: @hautelook_alice.fixtures.loader
-                      persister: @doctrine.orm.entity_manager
-                      basePath: %paths.base%/Features/fixtures/entities
+                - Fidry\AliceBundleExtension\Context\Doctrine\AliceORMContext
                 - Behat\MinkExtension\Context\MinkContext
                 - Sanpi\Behatch\Context\RestContext
                 - Sanpi\Behatch\Context\JsonContext
@@ -25,12 +20,12 @@ default:
             kernel:
                 env:       test
                 debug:     true
-                path:      Features/fixtures/SymfonyApp/AppKernel.php
-                bootstrap: Features/fixtures/SymfonyApp/bootstrap.php
+                path:      tests/Functional/AppKernel.php
+                bootstrap: tests/Functional/bootstrap.php
         Behat\MinkExtension:
             base_url:
             sessions:
                 default:
                     symfony2: ~
-        Fidry\AliceFixturesExtension\Extension: ~
+        Fidry\AliceBundleExtension\Extension: ~
         Sanpi\Behatch\Extension: ~

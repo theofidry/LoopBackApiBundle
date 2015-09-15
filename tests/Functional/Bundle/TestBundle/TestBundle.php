@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Fidry\LoopBackApiBundle\Tests\TestBundle;
+namespace Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

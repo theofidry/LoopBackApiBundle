@@ -12,7 +12,7 @@
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Tools\SchemaTool;
-use Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy;
+use Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity\Dummy;
 use PHPUnit_Framework_Assert as PHPUnit;
 use Sanpi\Behatch\Json\Json;
 use Sanpi\Behatch\Json\JsonInspector;
@@ -48,31 +48,6 @@ class FeatureContext extends \Behat\MinkExtension\Context\RawMinkContext
         $this->schemaTool = new SchemaTool($this->manager);
         $this->classes = $this->manager->getMetadataFactory()->getAllMetadata();
         $this->inspector = new JsonInspector('javascript');
-    }
-
-    /**
-     * @BeforeScenario @createSchema
-     */
-    public function createDatabase()
-    {
-        $this->schemaTool->createSchema($this->classes);
-    }
-
-    /**
-     * @BeforeScenario @dropSchema
-     */
-    public function dropDatabase()
-    {
-        $this->schemaTool->dropSchema($this->classes);
-    }
-
-    /**
-     * @Given the database is empty
-     */
-    public function emptyDatabase()
-    {
-        $this->dropDatabase();
-        $this->createDatabase();
     }
 
     /**

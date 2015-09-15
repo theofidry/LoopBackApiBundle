@@ -55,7 +55,7 @@ class OrderFilterTest extends KernelTestCase
     protected function setUp()
     {
         self::bootKernel();
-        $this->entityClass = 'Fidry\LoopBackApiBundle\Tests\TestBundle\Entity\Dummy';
+        $this->entityClass = 'Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity\Dummy';
         $this->managerRegistry = self::$kernel->getContainer()->get('doctrine');
         $this->repository = DoctrineTestHelper::createTestEntityManager()->getRepository($this->entityClass);
         $this->resource = new Resource($this->entityClass);

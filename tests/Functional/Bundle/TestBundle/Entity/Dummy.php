@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Fidry\LoopBackApiBundle\Tests\TestBundle\Entity;
+namespace Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @ORM\Entity
  */
-class AnotherDummy
+class Dummy
 {
     /**
      * @var int The id.
@@ -33,14 +33,6 @@ class AnotherDummy
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
-
-    /**
-     * @var string The dummy name alias.
-     *
-     * @ORM\Column(nullable=true)
-     * @Iri("https://schema.org/alternateName")
-     */
-    private $alias;
 
     /**
      * @var \DateTime A dummy date.
@@ -53,15 +45,14 @@ class AnotherDummy
     /**
      * @var bool
      *
-     * @ORM\Column(nullable=true)
+     * @ORM\Column(type="boolean", nullable=true)
      */
-    public $isEnabled;
+    public $enabled;
 
     /**
      * @var string The dummy name.
      *
-     * @ORM\Column
-     * @Assert\NotBlank
+     * @ORM\Column(nullable=true)
      * @Iri("http://schema.org/name")
      */
     private $name;
@@ -120,22 +111,6 @@ class AnotherDummy
     }
 
     /**
-     * @param $alias
-     */
-    public function setAlias($alias)
-    {
-        $this->alias = $alias;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        return $this->alias;
-    }
-
-    /**
      * @param \DateTime $dummyDate
      */
     public function setDummyDate(\DateTime $dummyDate)
@@ -158,7 +133,7 @@ class AnotherDummy
      */
     public function disable()
     {
-        $this->isEnabled = false;
+        $this->enabled = false;
 
         return $this;
     }
@@ -170,7 +145,7 @@ class AnotherDummy
      */
     public function enable()
     {
-        $this->isEnabled = true;
+        $this->enabled = true;
 
         return $this;
     }
@@ -182,7 +157,7 @@ class AnotherDummy
      */
     public function isEnabled()
     {
-        return $this->isEnabled;
+        return $this->enabled;
     }
 
     /**

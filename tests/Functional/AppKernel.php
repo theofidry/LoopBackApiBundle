@@ -12,7 +12,7 @@
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Dunglas\ApiBundle\DunglasApiBundle;
 use Fidry\LoopBackApiBundle\LoopBackApiBundle;
-use Fidry\LoopBackApiBundle\Tests\TestBundle\TestBundle;
+use Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\TestBundle;
 use Hautelook\AliceBundle\HautelookAliceBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
