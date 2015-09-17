@@ -20,14 +20,17 @@ matrix:
 before_install:
     - if ([ "hhvm" != "$TRAVIS_PHP_VERSION" ] && [ "nightly" != "$TRAVIS_PHP_VERSION" ]); then wget https://scrutinizer-ci.com/ocular.phar; fi
     - composer self-update
+    - composer config -g github-oauth.github.com $GITHUB_OAUTH_TOKEN
+    - composer global require phpunit/phpunit --no-update
+    - composer global update --prefer-dist
     - rm -rf tests/Functional/cache/*
 
 install:
-    - composer install
+    - composer update --prefer-dist --no-interaction
 
 script:
     - php console -V
-    - vendor/bin/phpunit --coverage-text
+    - phpunit --coverage-text
     - vendor/bin/behat
 
 after_script:
