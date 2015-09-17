@@ -31,9 +31,9 @@ class LoopBackApiExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setParameter('loopback.parameter.filter', $config['parameters']['filter']);
-        $container->setParameter('loopback.parameter.search_filter', $config['parameters']['search_filter']);
-        $container->setParameter('loopback.parameter.order_filter', $config['parameters']['order_filter']);
+        foreach ($config['parameters'] as $key => $value) {
+            $container->setParameter(sprintf('%s.parameter.%s', $this->getAlias(), $key), $value);
+        }
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');

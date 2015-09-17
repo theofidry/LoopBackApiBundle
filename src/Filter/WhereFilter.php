@@ -17,7 +17,8 @@ use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
 use Dunglas\ApiBundle\Api\ResourceInterface;
-use Dunglas\ApiBundle\Doctrine\Orm\Filter\AbstractFilter;
+use Dunglas\ApiBundle\Doctrine\Orm\Filter\FilterInterface;
+use Fidry\LoopBackApiBundle\Http\Request\FilterQueryExtractorInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
@@ -26,10 +27,8 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  */
-class WhereFilter extends AbstractFilter
+class WhereFilter implements FilterInterface
 {
-    use FilterTrait;
-
     const PARAMETER_OPERATOR_OR = 'or';
     const PARAMETER_OPERATOR_GT = 'gt';
     const PARAMETER_OPERATOR_GTE = 'gte';
@@ -44,14 +43,24 @@ class WhereFilter extends AbstractFilter
     const PARAMETER_NULL_VALUE = 'null';
 
     /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
      * @var IriConverterInterface
      */
     private $iriConverter;
+
+    /**
+     * @var FilterQueryExtractorInterface
+     */
+    private $queryExtractor;
+
+    /**
+     * @var ManagerRegistry
+     */
+    private $managerRegistry;
+
+    /**
+     * @var array|null
+     */
+    private $properties;
 
     /**
      * @var PropertyAccessorInterface
@@ -59,24 +68,32 @@ class WhereFilter extends AbstractFilter
     private $propertyAccessor;
 
     /**
-     * @param ManagerRegistry           $managerRegistry
-     * @param RequestStack              $requestStack
-     * @param IriConverterInterface     $iriConverter
-     * @param PropertyAccessorInterface $propertyAccessor
-     * @param null|array                $properties       Null to allow filtering on all properties with the exact strategy or a map of property name with strategy.
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
+     * @param ManagerRegistry               $managerRegistry
+     * @param RequestStack                  $requestStack
+     * @param IriConverterInterface         $iriConverter
+     * @param PropertyAccessorInterface     $propertyAccessor
+     * @param FilterQueryExtractorInterface $queryExtractor
+     * @param null|array                    $properties Null to allow filtering on all properties with the exact strategy or a map of property name with strategy.
      */
     public function __construct(
         ManagerRegistry $managerRegistry,
         RequestStack $requestStack,
         IriConverterInterface $iriConverter,
         PropertyAccessorInterface $propertyAccessor,
+        FilterQueryExtractorInterface $queryExtractor,
         array $properties = null
     ) {
-        parent::__construct($managerRegistry, $properties);
-
+        $this->managerRegistry = $managerRegistry;
         $this->iriConverter = $iriConverter;
         $this->propertyAccessor = $propertyAccessor;
+        $this->queryExtractor = $queryExtractor;
         $this->requestStack = $requestStack;
+        $this->properties = $properties;
     }
 
     /**
@@ -88,7 +105,7 @@ class WhereFilter extends AbstractFilter
             return null;
         }
 
-        $queryValues = $this->extractProperties($request);
+        $queryValues = $this->queryExtractor->extractProperties($request);
         $metadata = $this->getClassMetadata($resource);
         $queryExpr = [];
         $aliases = [];
@@ -530,6 +547,24 @@ class WhereFilter extends AbstractFilter
             ->managerRegistry
             ->getManagerForClass($class)
             ->getClassMetadata($class)
+        ;
+    }
+
+    /**
+     * Gets class metadata for the given resource.
+     *
+     * @param ResourceInterface $resource
+     *
+     * @return ClassMetadata
+     */
+    private function getClassMetadata(ResourceInterface $resource)
+    {
+        $entityClass = $resource->getEntityClass();
+
+        return $this
+            ->managerRegistry
+            ->getManagerForClass($entityClass)
+            ->getClassMetadata($entityClass)
         ;
     }
 }

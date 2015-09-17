@@ -14,21 +14,34 @@
             </call>
         </service>
 
-        <service id="loopback_api.filter.where_filter"
-                 parent="api.doctrine.orm.search_filter"
-                 class="Fidry\LoopBackApiBundle\Filter\WhereFilter" >
-            <call method="initParameter">
-                 <argument>%loopback.parameter.search_filter%</argument>
-            </call>
+        <service id="loopback_api.http.query_extractor.order_filter_query_extractor"
+                 class="Fidry\LoopBackApiBundle\Http\Request\FilterQueryExtractor">
+            <argument>%loopback_api.parameter.order_filter%</argument>
+            <argument>%loopback_api.parameter.filter%</argument>
+        </service>
+
+        <service id="loopback_api.http.query_extractor.where_filter_query_extractor"
+                 class="Fidry\LoopBackApiBundle\Http\Request\FilterQueryExtractor">
+            <argument>%loopback_api.parameter.search_filter%</argument>
+            <argument>%loopback_api.parameter.filter%</argument>
         </service>
 
         <service id="loopback_api.filter.order_filter"
-                 parent="api.doctrine.orm.order_filter"
                  class="Fidry\LoopBackApiBundle\Filter\OrderFilter" >
-            <call method="initParameter">
-                 <argument>%loopback.parameter.order_filter%</argument>
-            </call>
+            <argument type="service" id="doctrine" />
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="loopback_api.http.query_extractor.order_filter_query_extractor" />
         </service>
+
+        <service id="loopback_api.filter.where_filter"
+                 class="Fidry\LoopBackApiBundle\Filter\WhereFilter" >
+            <argument type="service" id="doctrine" />
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="api.iri_converter" />
+            <argument type="service" id="api.property_accessor" />
+            <argument type="service" id="loopback_api.http.query_extractor.where_filter_query_extractor" />
+        </service>
+
     </services>
 
 </container>

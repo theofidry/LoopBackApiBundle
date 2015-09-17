@@ -6,7 +6,7 @@ Feature: Order filter on collections
 
   Scenario: Check fixtures
     Given the database is empty
-    Given the fixtures "search-dummy-simple.yml" are loaded
+    Given the fixtures file "search-dummy-simple.yml" is loaded
     When I send a GET request to "/dummies"
     And the response status code should be 200
     Then the response should be in JSON
