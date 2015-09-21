@@ -90,10 +90,6 @@ class OrderFilter implements FilterInterface
                 $queryBuilder->addOrderBy(sprintf('o.%s', $property), $order);
             }
         }
-
-//        \Symfony\Component\VarDumper\VarDumper::dump($queryBuilder->getDQL());
-//        \Symfony\Component\VarDumper\VarDumper::dump($request->query->all());
-//        \Symfony\Component\VarDumper\VarDumper::dump($properties);die();
     }
 
     /**

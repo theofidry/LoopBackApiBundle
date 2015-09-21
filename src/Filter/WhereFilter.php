@@ -11,7 +11,6 @@
 
 namespace Fidry\LoopBackApiBundle\Filter;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\ResourceInterface;
@@ -20,7 +19,6 @@ use Fidry\LoopBackApiBundle\Http\Request\FilterQueryExtractorInterface;
 use Fidry\LoopBackApiBundle\Normalizer\ParameterValueNormalizer;
 use Fidry\LoopBackApiBundle\Property\Property;
 use Fidry\LoopBackApiBundle\Property\PropertyBag;
-use Fidry\LoopBackApiBundle\Resolver\MetadataResolver;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -166,9 +164,6 @@ class WhereFilter implements FilterInterface
         }
 
         //TODO: do the joins
-
-        \Symfony\Component\VarDumper\VarDumper::dump($queryBuilder->getDQL());
-        \Symfony\Component\VarDumper\VarDumper::dump($aliases);die();
     }
 
     /**
@@ -189,7 +184,7 @@ class WhereFilter implements FilterInterface
         $parameter = null
     ) {
         $queryExpr = [];
-        $filterProperty = $this->propertyBag->resolveProperty($property, $value);
+        $filterProperty = $this->propertyBag->getProperty($property, $value);
 
         if (true === $filterProperty->getResourceMetadata()->hasField($filterProperty->getShortname())) {
             // Entity has the property

@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the LoopBackApiBundle package.
+ *
+ * (c) Théo FIDRY <theo.fidry@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Fidry\LoopBackApiBundle\Property;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
@@ -37,23 +46,17 @@ class Property
     private $resourceMetadata;
 
     /**
-     * @var string|null
-     */
-    private $value;
-
-    /**
      * @param string        $shortname
      * @param string        $fullname
      * @param string        $alias
      * @param ClassMetadata $resourceMetadata
      */
-    function __construct($shortname, $fullname, $alias, $resourceMetadata, $value)
+    function __construct($shortname, $fullname, $alias, $resourceMetadata)
     {
         $this->shortname = $shortname;
         $this->fullname = $fullname;
         $this->queryBuilderAlias = $alias;
         $this->resourceMetadata = $resourceMetadata;
-        $this->value = $value;
     }
 
     /**
@@ -86,13 +89,5 @@ class Property
     public function getShortname()
     {
         return $this->shortname;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getValue()
-    {
-        return $this->value;
     }
 }

@@ -1,9 +1,17 @@
 <?php
 
+/*
+ * This file is part of the LoopBackApiBundle package.
+ *
+ * (c) Théo FIDRY <theo.fidry@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Fidry\LoopBackApiBundle\Property;
 
-use Fidry\LoopBackApiBundle\Resolver\AliasResolver;
-use Fidry\LoopBackApiBundle\Resolver\MetadataResolver;
+use Fidry\LoopBackApiBundle\Resolver\PropertyResolver;
 
 /**
  * @author Théo FIDRY <theo.fidry@gmail.com>
@@ -11,24 +19,18 @@ use Fidry\LoopBackApiBundle\Resolver\MetadataResolver;
 class PropertyBag
 {
     /**
-     * @var AliasResolver
-     */
-    private $aliasResolver;
-
-    /**
-     * @var MetadataResolver
-     */
-    private $metadataResolver;
-
-    /**
      * @var Property[]
      */
     private $properties = [];
 
-    public function __construct(AliasResolver $aliasResolver, MetadataResolver $metadataResolver)
+    /**
+     * @var PropertyResolver
+     */
+    private $propertyResolver;
+
+    public function __construct(PropertyResolver $propertyResolver)
     {
-        $this->aliasResolver = $aliasResolver;
-        $this->metadataResolver = $metadataResolver;
+        $this->propertyResolver = $propertyResolver;
     }
 
     /**
@@ -44,31 +46,13 @@ class PropertyBag
      *
      * @return Property
      */
-    public function resolveProperty($property)
+    public function getProperty($property)
     {
-        //TODO call PropertyResolver
+        // Resolve property if not present in the parameter bag
         if (false === array_key_exists($property, $this->properties)) {
-            $this->_resolveProperty($property);
+            $this->properties[$property] = $this->propertyResolver->resolve($property);
         }
 
         return $this->properties[$property];
-    }
-
-    private function _resolveProperty($property)
-    {
-        //TODO
-        //        if (false !== strpos($property, '.')) {
-//            $explodedProperty = explode('.', $property);
-//        } else {
-//            $explodedProperty = explode('_', $property);
-//        }
-//        // we are in case 2
-//        $property = array_pop($explodedProperty);
-//        $alias = $this->getResourceAliasForProperty($aliases, $explodedProperty);
-//        $aliasMetadata = $this->getAssociationMetadataForProperty(
-//            $resourceMetadata,
-//            $associationsMetadata,
-//            $explodedProperty
-//        );
     }
 }
