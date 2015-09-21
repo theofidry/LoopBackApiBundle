@@ -11,14 +11,11 @@
 
 namespace Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Dunglas\ApiBundle\Annotation\Iri;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Dummy.
- *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  *
  * @ORM\Entity
@@ -38,7 +35,7 @@ class Dummy
      * @var \DateTime A dummy date.
      *
      * @ORM\Column(type="datetime", nullable=true)
-     * @Assert\DateTime
+     * @Groups({"dummy"})
      */
     public $dummyDate;
 
@@ -46,6 +43,7 @@ class Dummy
      * @var bool
      *
      * @ORM\Column(type="boolean", nullable=true)
+     * @Groups({"dummy"})
      */
     public $enabled;
 
@@ -53,7 +51,7 @@ class Dummy
      * @var string The dummy name.
      *
      * @ORM\Column(nullable=true)
-     * @Iri("http://schema.org/name")
+     * @Groups({"dummy"})
      */
     private $name;
 
@@ -61,30 +59,17 @@ class Dummy
      * @var float The dummy price.
      *
      * @ORM\Column(type="float", nullable=true)
+     * @Groups({"dummy"})
      */
     private $price;
 
     /**
      * @var RelatedDummy A related dummy.
      *
-     * @ORM\ManyToOne(targetEntity="RelatedDummy")
+     * @ORM\OneToOne(targetEntity="RelatedDummy")
+     * @Groups({"dummy"})
      */
     public $relatedDummy;
-
-    /**
-     * @var ArrayCollection Several dummies.
-     *
-     * @ORM\ManyToMany(targetEntity="RelatedDummy")
-     */
-    public $relatedDummies;
-
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-        $this->relatedDummies = new ArrayCollection();
-    }
 
     /**
      * @return int

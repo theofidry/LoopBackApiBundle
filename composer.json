@@ -24,6 +24,7 @@
         "behat/mink-browserkit-driver": "~1.1",
         "behatch/contexts": "dev-master#eef7ab39ca896796bf3ba25a0fa5a95f15276eb7",
         "hautelook/alice-bundle": "~1.0@beta",
+        "phpunit/phpunit": "^4.8",
         "theofidry/alice-bundle-extension": "~1.0@beta"
     },
     "autoload": {

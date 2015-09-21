@@ -12,20 +12,18 @@
 namespace Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Dunglas\ApiBundle\Annotation\Iri;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Related dummy.
- *
  * @author Théo FIDRY <theo.fidry@gmail.com>
  *
  * @ORM\Entity
- * @Iri("https://schema.org/Product")
  */
 class RelatedDummy
 {
     /**
+     * @var int The id.
+     *
      * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
@@ -33,54 +31,50 @@ class RelatedDummy
     private $id;
 
     /**
-     * @var int The age.
+     * @var \DateTime A dummy date.
      *
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
+     * @Groups({"dummy"})
      */
-    private $age;
+    public $dummyDate;
 
     /**
-     * @ORM\Column
-     * @Groups({"barcelona", "chicago"})
+     * @var bool
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     * @Groups({"dummy"})
      */
-    protected $symfony = 'symfony';
+    public $enabled;
 
     /**
-     * @var AnotherDummy
+     * @var string The dummy name.
      *
-     * @ORM\ManyToOne(targetEntity="AnotherDummy")
+     * @ORM\Column(nullable=true)
+     * @Groups({"dummy"})
+     */
+    public $name;
+
+    /**
+     * @var float The dummy price.
+     *
+     * @ORM\Column(type="float", nullable=true)
+     * @Groups({"dummy"})
+     */
+    public $price;
+
+    /**
+     * @var RelatedDummy A related dummy.
+     *
+     * @ORM\OneToOne(targetEntity="AnotherDummy")
+     * @Groups({"dummy"})
      */
     public $anotherDummy;
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @return int
-     */
-    public function getAge()
-    {
-        return $this->age;
-    }
-
-    /**
-     * @param $symfony
-     */
-    public function setSymfony($symfony)
-    {
-        $this->symfony = $symfony;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSymfony()
-    {
-        return $this->symfony;
     }
 }

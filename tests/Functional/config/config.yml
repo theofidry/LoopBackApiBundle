@@ -28,3 +28,6 @@ doctrine:
 dunglas_api:
     title:       My Dummy API
     description: This is a test API.
+
+hautelook_alice:
+    loading_limit: 50

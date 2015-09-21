@@ -18,7 +18,6 @@ Feature: Order filter on collections
     And the JSON node "hydra:member[0]->enabled" should be equal to true
     And the JSON node "hydra:member[0]->price" should be equal to 10.99
     And the JSON node "hydra:member[0]->relatedDummy" should be null
-    And the JSON node "hydra:member[0]->relatedDummies" should have 0 element
 
     And the JSON node "hydra:member[1]->@id" should be equal to "/dummies/2"
     And the JSON node "hydra:member[1]->name" should be null
@@ -26,7 +25,6 @@ Feature: Order filter on collections
     And the JSON node "hydra:member[1]->enabled" should be null
     And the JSON node "hydra:member[1]->price" should be null
     And the JSON node "hydra:member[1]->relatedDummy" should be null
-    And the JSON node "hydra:member[1]->relatedDummies" should have 0 element
 
     And the JSON node "hydra:member[2]->@id" should be equal to "/dummies/3"
     And the JSON node "hydra:member[2]->name" should be equal to ""
@@ -34,7 +32,6 @@ Feature: Order filter on collections
     And the JSON node "hydra:member[2]->enabled" should be null
     And the JSON node "hydra:member[2]->price" should be equal to 0
     And the JSON node "hydra:member[2]->relatedDummy" should be null
-    And the JSON node "hydra:member[2]->relatedDummies" should have 0 element
 
     And the JSON node "hydra:member[3]->@id" should be equal to "/dummies/4"
     And the JSON node "hydra:member[3]->name" should be null
@@ -42,7 +39,6 @@ Feature: Order filter on collections
     And the JSON node "hydra:member[3]->enabled" should be equal to the boolean false
     And the JSON node "hydra:member[3]->price" should be equal to 120
     And the JSON node "hydra:member[3]->relatedDummy" should be null
-    And the JSON node "hydra:member[3]->relatedDummies" should have 0 element
 
 
   @firstLevel @noOperator @iriValue
@@ -146,19 +142,3 @@ Feature: Order filter on collections
     Then the JSON node "hydra:totalItems" should be equal to 1
     And the JSON node "hydra:member[0]->@id" should be equal to "/dummies/3"
     And the JSON node "hydra:member[0]->dummyDate" should be null
-
-#  @firstLevel @regularSearch
-#  Scenario:
-#    Given the database is empty
-#    Given the fixtures "search-dummy-simple.yml" are loaded
-#    When I send a "GET" request to "/dummies?filter[where][name]=AAA"
-#    Then the JSON node "hydra:totalItems" should be equal to 1
-#    And the JSON node "hydra:member[0]->@id" should be equal to "/dummies/1"
-#
-#    When I send a "GET" request to "/dummies?filter[where][name]=A"
-#    Then the JSON node "hydra:totalItems" should be equal to 0
-
-#  Scenario:
-#    Given the fixtures "search-dummy-simple.yml" are loaded
-#    When I send a "GET" request to "/dummies?filter[where][relatedDummy.anotherDummy.id]=/api/90"
-#    Then print last JSON response

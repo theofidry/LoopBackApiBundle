@@ -2,6 +2,9 @@ services:
     my_dummy_resource:
         parent:    loopback_api.resource
         arguments: [ Fidry\LoopBackApiBundle\Tests\Functional\Bundle\TestBundle\Entity\Dummy ]
+        calls:
+            -      method:    initNormalizationContext
+                   arguments: [ { groups: [ dummy ] } ]
         tags:      [ { name: api.resource } ]
 
     my_related_dummy_resource:
