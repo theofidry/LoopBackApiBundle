@@ -11,6 +11,7 @@
 
 namespace Fidry\LoopBackApiBundle\Property;
 
+use Dunglas\ApiBundle\Api\ResourceInterface;
 use Fidry\LoopBackApiBundle\Resolver\PropertyResolver;
 
 /**
@@ -42,17 +43,20 @@ class PropertyBag
      *  relatedDummy_user_id
      *  relatedDummy_user_name
      *
-     * @param string $property
+     * @param ResourceInterface $resource
+     * @param string            $property
      *
      * @return Property
      */
-    public function getProperty($property)
+    public function getProperty(ResourceInterface $resource, $property)
     {
+        $propertyKey = sprintf('%s_%s', $resource->getEntityClass(), $property);
+
         // Resolve property if not present in the parameter bag
-        if (false === array_key_exists($property, $this->properties)) {
-            $this->properties[$property] = $this->propertyResolver->resolve($property);
+        if (false === array_key_exists($propertyKey, $this->properties)) {
+            $this->properties[$propertyKey] = $this->propertyResolver->resolve($resource, $property);
         }
 
-        return $this->properties[$property];
+        return $this->properties[$propertyKey];
     }
 }

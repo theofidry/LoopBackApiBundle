@@ -51,7 +51,7 @@ class Property
      * @param string        $alias
      * @param ClassMetadata $resourceMetadata
      */
-    function __construct($shortname, $fullname, $alias, $resourceMetadata)
+    function __construct($shortname, $fullname, $alias, ClassMetadata $resourceMetadata)
     {
         $this->shortname = $shortname;
         $this->fullname = $fullname;

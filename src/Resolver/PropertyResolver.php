@@ -11,6 +11,7 @@
 
 namespace Fidry\LoopBackApiBundle\Resolver;
 
+use Dunglas\ApiBundle\Api\ResourceInterface;
 use Fidry\LoopBackApiBundle\Property\Property;
 
 /**
@@ -41,11 +42,12 @@ class PropertyResolver
      *  relatedDummy_user_id
      *  relatedDummy_user_name
      *
-     * @param string $property
+     * @param ResourceInterface $resource
+     * @param string            $property
      *
      * @return Property
      */
-    public function resolve($property)
+    public function resolve(ResourceInterface $resource, $property)
     {
         //TODO
         //        if (false !== strpos($property, '.')) {
