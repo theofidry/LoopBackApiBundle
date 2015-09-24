@@ -25,9 +25,10 @@
         <whitelist>
             <directory>.</directory>
             <exclude>
-                <directory>vendor</directory>
-                <directory>tests</directory>
+                <directory>features</directory>
                 <directory>src/Resources</directory>
+                <directory>tests</directory>
+                <directory>vendor</directory>
             </exclude>
         </whitelist>
     </filter>

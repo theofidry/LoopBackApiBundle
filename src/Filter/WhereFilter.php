@@ -95,7 +95,6 @@ class WhereFilter implements FilterInterface
 
         $queryValues = $this->queryExtractor->extractProperties($request);
         $queryExpr = [];
-        $aliases = [];
 
         // Retrieve all doctrine query expressions
         foreach ($queryValues as $key => $value) {
@@ -175,7 +174,7 @@ class WhereFilter implements FilterInterface
      * @param array|string    $value
      * @param string|null     $parameter If is string is used to construct the parameter to avoid parameter conflicts.
      *
-     * @return array
+     * @return Expr[]
      */
     private function handleFilter(
         QueryBuilder $queryBuilder,
@@ -183,48 +182,54 @@ class WhereFilter implements FilterInterface
         $value,
         $parameter = null
     ) {
-        $queryExpr = [];
         $filterProperty = $this->propertyBag->getProperty($property, $value);
-
-        if (true === $filterProperty->getResourceMetadata()->hasField($filterProperty->getShortname())) {
-            // Entity has the property
-            if (true === is_array($value)) {
-                foreach ($value as $operator => $operand) {
-                    // Case where there is an operator
-                    // $operand is the "real" $value
-                    $queryExpr[] = $this->handleOperator(
-                        $queryBuilder,
-                        $filterProperty,
-                        $operator,
-                        $operand,
-                        $parameter
-                    );
-                }
-            } else {
-                // Simple where
-                $value = $this->parameterValueNormalizer->normalizeValue(
-                    $filterProperty->getResourceMetadata(),
-                    $filterProperty->getShortname(),
-                    $value
-                );
-                if (null === $value) {
-                    $queryExpr[] = $queryBuilder->expr()->isNull(sprintf(
-                        '%s.%s',
-                        $filterProperty->getQueryBuilderAlias(),
-                        $property)
-                    );
-                } else {
-                    if (null === $parameter) {
-                        $parameter = $property;
-                    }
-                    $queryExpr[] = $queryBuilder->expr()->eq(
-                        sprintf('%s.%s', $filterProperty->getQueryBuilderAlias(), $property),
-                        sprintf(':%s', $parameter)
-                    );
-                    $queryBuilder->setParameter($parameter, $value);
-                }
-            }
+        if (false !== $filterProperty->getResourceMetadata()->hasField($filterProperty->getShortname())) {
+            return [];
         }
+
+        // Entity has the property
+        $queryExpr = [];
+        if (true === is_array($value)) {
+            foreach ($value as $operator => $operand) {
+                // Case where there is an operator
+                // $operand is the "real" $value
+                $queryExpr[] = $this->handleOperator(
+                    $queryBuilder,
+                    $filterProperty,
+                    $operator,
+                    $operand,
+                    $parameter
+                );
+            }
+
+            return $queryExpr;
+        }
+
+        // Simple where
+        $value = $this->parameterValueNormalizer->normalizeValue(
+            $filterProperty->getResourceMetadata(),
+            $filterProperty->getShortname(),
+            $value
+        );
+        if (null === $value) {
+            $queryExpr[] = $queryBuilder->expr()->isNull(sprintf(
+                '%s.%s',
+                $filterProperty->getQueryBuilderAlias(),
+                $property)
+            );
+
+            return $queryExpr;
+        }
+
+
+        if (null === $parameter) {
+            $parameter = $property;
+        }
+        $queryExpr[] = $queryBuilder->expr()->eq(
+            sprintf('%s.%s', $filterProperty->getQueryBuilderAlias(), $property),
+            sprintf(':%s', $parameter)
+        );
+        $queryBuilder->setParameter($parameter, $value);
 
         return $queryExpr;
     }
