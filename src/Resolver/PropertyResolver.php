@@ -12,6 +12,7 @@
 namespace Fidry\LoopBackApiBundle\Resolver;
 
 use Dunglas\ApiBundle\Api\ResourceInterface;
+use Fidry\LoopBackApiBundle\Extractor\PropertyExtractor;
 use Fidry\LoopBackApiBundle\Property\Property;
 
 /**
@@ -29,10 +30,19 @@ class PropertyResolver
      */
     private $metadataResolver;
 
-    public function __construct(AliasResolver $aliasResolver, MetadataResolver $metadataResolver)
-    {
+    /**
+     * @var PropertyExtractor
+     */
+    private $propertyExtractor;
+
+    public function __construct(
+        PropertyExtractor $propertyExtractor,
+        AliasResolver $aliasResolver,
+        MetadataResolver $metadataResolver
+    ) {
         $this->aliasResolver = $aliasResolver;
         $this->metadataResolver = $metadataResolver;
+        $this->propertyExtractor = $propertyExtractor;
     }
 
     /**
@@ -49,19 +59,11 @@ class PropertyResolver
      */
     public function resolve(ResourceInterface $resource, $property)
     {
-        //TODO
-        //        if (false !== strpos($property, '.')) {
-//            $explodedProperty = explode('.', $property);
-//        } else {
-//            $explodedProperty = explode('_', $property);
-//        }
-//        // we are in case 2
-//        $property = array_pop($explodedProperty);
-//        $alias = $this->getResourceAliasForProperty($aliases, $explodedProperty);
-//        $aliasMetadata = $this->getAssociationMetadataForProperty(
-//            $resourceMetadata,
-//            $associationsMetadata,
-//            $explodedProperty
-//        );
+        return new Property(
+            $this->propertyExtractor->getResourceProperty($property),
+            $property,
+            uniqid(),
+            $this->metadataResolver->getResourceMetadataOfProperty($resource->getEntityClass(), $property)
+        );
     }
 }

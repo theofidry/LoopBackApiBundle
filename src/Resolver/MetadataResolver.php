@@ -15,6 +15,7 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Expr;
 use Dunglas\ApiBundle\Api\ResourceInterface;
+use Fidry\LoopBackApiBundle\Extractor\PropertyExtractor;
 
 /**
  * @author Théo FIDRY <theo.fidry@gmail.com>
@@ -22,13 +23,24 @@ use Dunglas\ApiBundle\Api\ResourceInterface;
 class MetadataResolver
 {
     /**
+     * @var ClassMetadata[]
+     */
+    private $associationsMetadata = [];
+
+    /**
      * @var ManagerRegistry
      */
     private $managerRegistry;
 
-    public function __construct(ManagerRegistry $managerRegistry)
+    /**
+     * @var PropertyExtractor
+     */
+    private $propertyExtractor;
+
+    public function __construct(ManagerRegistry $managerRegistry, PropertyExtractor $propertyExtractor)
     {
         $this->managerRegistry = $managerRegistry;
+        $this->propertyExtractor = $propertyExtractor;
     }
 
     /**
@@ -36,55 +48,73 @@ class MetadataResolver
      *
      * @example
      *  $property was `name`
-     *  $explodedProperty then is []
      *  => $resourceMetadata
      *
      *  $property was `relatedDummy_name`
-     *  $explodedProperty then is ['relatedDummy']
      *  => metadata of relatedDummy
      *
      *  $property was `relatedDummy_anotherDummy_name`
-     *  $explodedProperty then is ['relatedDummy', 'anotherDummy']
      *  => metadata of anotherDummy
      *
-     * @param ClassMetadata   $resourceMetadata
-     * @param ClassMetadata[] $associationsMetadata
-     * @param array           $explodedProperty
+     * @param string $resourceClass FQCN
+     * @param string $property
      *
      * @return ClassMetadata
+     * @internal param ClassMetadata $resourceMetadata
      */
-    public function getAssociationMetadataForProperty(
-        ClassMetadata $resourceMetadata,
-        array &$associationsMetadata,
-        array $explodedProperty
-    ) {
+    public function getResourceMetadataOfProperty($resourceClass, $property)
+    {
+        $resourceMetadata = $this->getClassMetadata($resourceClass);
+
+        $explodedProperty = $this->propertyExtractor->getExplodedProperty($property);
+        array_pop($explodedProperty);
+        // $explodedProperty now only contains "associations"
+
         if (0 === count($explodedProperty)) {
             return $resourceMetadata;
         }
 
-        $parentResourceMetadata = $resourceMetadata;
-        foreach ($explodedProperty as $index => $property) {
-            if (0 < $index) {
-                $parentResourceMetadata = $associationsMetadata[$explodedProperty[$index - 1]];
-            }
+        if (true === array_key_exists($resourceMetadata->getName(), $this->associationsMetadata)
+            && true === array_key_exists($property, $this->associationsMetadata[$resourceMetadata->getName()])
+        ) {
+            return $this->associationsMetadata[$resourceMetadata->getName()];
+        }
 
+        end($explodedProperty);
+        $lastKey = key($explodedProperty);
+        $parentResourceMetadata = $resourceMetadata;
+        /*
+         * $explodedProperty = ['relatedDummy']
+         * => metadata of relatedDummy
+         *
+         * $explodedProperty = [
+         *  'relatedDummy',
+         *  'anotherDummy',
+         * ]
+         * => metadata of anotherDummy
+         */
+        foreach ($explodedProperty as $index => $property) {
             if (false === $parentResourceMetadata->hasAssociation($property)) {
-                throw new \RuntimeException(sprintf(
+                throw new \UnexpectedValueException(
+                    sprintf(
                         'Class %s::%s is not an association.',
                         $parentResourceMetadata->getName
                         (),
-                        $property)
+                        $property
+                    )
                 );
             }
 
-            if (false === isset($associationsMetadata[$property])) {
-                $associationsMetadata[$property] = $this->getMetadata(
-                    $parentResourceMetadata->getAssociationTargetClass($property)
-                );
+            $parentResourceMetadata = $this->getClassMetadata(
+                $parentResourceMetadata->getAssociationTargetClass($property)
+            );
+
+            if ($lastKey === $index) {
+                return $parentResourceMetadata;
             }
         }
 
-        return $associationsMetadata[end($explodedProperty)];
+        throw new \RuntimeException('No class metadata found');
     }
 
     /**
