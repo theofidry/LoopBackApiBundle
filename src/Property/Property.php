@@ -37,8 +37,35 @@ class Property
 
     /**
      * @var string Alias used for the query builder
+     *
+     * @example
+     *  for $property = 'name'
+     *  => 'o'
+     *
+     *  for $property = 'relatedDummy_name'
+     *  => 'RelatedDummyJoinAlias'
      */
     private $queryBuilderAlias;
+
+    /**
+     * @var string[]
+     *
+     * @example
+     *  for $property = 'name'
+     *  => []
+     *
+     *  for $property = 'relatedDummy_name'
+     *  => [
+     *      'o.relatedDummy' => 'RelatedDummyJoinAlias'
+     *  ]
+     *
+     *  for $property = 'relatedDummy_anotherDummy_name'
+     *  => [
+     *      'o.relatedDummy' => 'RelatedDummyJoinAlias',
+     *      'RelatedDummyJoinAlias.anotherDummy' => 'AnotherDummyJoinAlias',
+     *  ]
+     */
+    private $joinAliasesChain;
 
     /**
      * @var ClassMetadata metadata of the resource to which belongs the property
@@ -48,14 +75,16 @@ class Property
     /**
      * @param string        $shortname
      * @param string        $fullname
-     * @param string        $alias
+     * @param string[]      $joinAliasesChain
      * @param ClassMetadata $resourceMetadata
      */
-    function __construct($shortname, $fullname, $alias, ClassMetadata $resourceMetadata)
+    function __construct($shortname, $fullname, array $joinAliasesChain, ClassMetadata $resourceMetadata)
     {
         $this->shortname = $shortname;
         $this->fullname = $fullname;
-        $this->queryBuilderAlias = $alias;
+        $this->$joinAliasesChain = $joinAliasesChain;
+        end($joinAliasesChain);
+        $this->queryBuilderAlias = $joinAliasesChain[key($joinAliasesChain)];
         $this->resourceMetadata = $resourceMetadata;
     }
 
@@ -65,6 +94,14 @@ class Property
     public function getQueryBuilderAlias()
     {
         return $this->queryBuilderAlias;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getJoinAliasesChain()
+    {
+        return $this->joinAliasesChain;
     }
 
     /**

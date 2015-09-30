@@ -62,7 +62,7 @@ class PropertyResolver
         return new Property(
             $this->propertyExtractor->getResourceProperty($property),
             $property,
-            uniqid(),
+            $this->aliasResolver->getJoinAliasesChain($resource->getEntityClass(), $property),
             $this->metadataResolver->getResourceMetadataOfProperty($resource->getEntityClass(), $property)
         );
     }

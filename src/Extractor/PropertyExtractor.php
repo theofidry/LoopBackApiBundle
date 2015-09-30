@@ -8,17 +8,31 @@ namespace Fidry\LoopBackApiBundle\Extractor;
 class PropertyExtractor
 {
     /**
+     * @var string[] Characters that can be used as separators for a property route.
+     *
+     * @example
+     *  if '.' is a property separator, 'dummy.name' will be considered as "property 'name' of 'dummy' (implying
+     *  dummy will be treated as an association later).
+     */
+    public static $separators = [
+        '.',
+        '_',
+    ];
+
+    /**
      * @param $property
      *
      * @return string[]
      */
     public function getExplodedProperty($property)
     {
-        if (false !== strpos($property, '.')) {
-            return explode('.', $property);
+        foreach (self::$separators as $separator) {
+            if (false !== strpos($property, $separator)) {
+                return explode($separator, $property);
+            }
         }
 
-        return explode('_', $property);
+        return [];
     }
 
     /**

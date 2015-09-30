@@ -93,6 +93,8 @@ class WhereFilter implements FilterInterface
             return null;
         }
 
+        /* @var Property[] $propertyUsed List of properties effectively used */
+        $propertyUsed = [];
         $queryValues = $this->queryExtractor->extractProperties($request);
         $queryExpr = [];
 
@@ -153,7 +155,7 @@ class WhereFilter implements FilterInterface
                 // In this case, $key is the property "fullname", e.g. 'relatedDummy_user_name'
                 $queryExpr = array_merge(
                     $queryExpr,
-                    $this->handleFilter($queryBuilder, $key, $value)
+                    $this->handleFilter($queryBuilder, $key, $value, $propertyUsed)
                 );
             }
         }
@@ -162,24 +164,33 @@ class WhereFilter implements FilterInterface
             $queryBuilder->andWhere($expr);
         }
 
-        //TODO: do the joins
+        $joinAliasesChain = [];
+        foreach ($propertyUsed as $property) {
+            $joinAliasesChain[] = array_merge($joinAliasesChain, $property->getJoinAliasesChain());
+        }
+
+        foreach ($joinAliasesChain as $join => $alias) {
+            $queryBuilder->join($join, $alias);
+        }
     }
 
     /**
      * Handles the given filter to call the proper operator. At this point, it's unclear if the value passed is the real
      * value operator.
      *
-     * @param QueryBuilder    $queryBuilder
-     * @param string          $property Complete property, ex: 'id', 'relatedDummy_id', 'relatedDummy_user_name', etc.
-     * @param array|string    $value
-     * @param string|null     $parameter If is string is used to construct the parameter to avoid parameter conflicts.
+     * @param QueryBuilder $queryBuilder
+     * @param string       $property  Complete property, ex: 'id', 'relatedDummy_id', 'relatedDummy_user_name', etc.
+     * @param array|string $value
+     * @param Property[]   $propertyUsed
+     * @param string|null  $parameter If is string is used to construct the parameter to avoid parameter conflicts.
      *
-     * @return Expr[]
+     * @return \Doctrine\ORM\Query\Expr[]
      */
     private function handleFilter(
         QueryBuilder $queryBuilder,
         $property,
         $value,
+        &$propertyUsed,
         $parameter = null
     ) {
         $filterProperty = $this->propertyBag->getProperty($property, $value);
@@ -189,6 +200,7 @@ class WhereFilter implements FilterInterface
 
         // Entity has the property
         $queryExpr = [];
+        $propertyUsed[] = $filterProperty;
         if (true === is_array($value)) {
             foreach ($value as $operator => $operand) {
                 // Case where there is an operator

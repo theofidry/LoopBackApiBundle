@@ -60,7 +60,6 @@ class MetadataResolver
      * @param string $property
      *
      * @return ClassMetadata
-     * @internal param ClassMetadata $resourceMetadata
      */
     public function getResourceMetadataOfProperty($resourceClass, $property)
     {
@@ -118,19 +117,89 @@ class MetadataResolver
     }
 
     /**
+     * Gets the metadata of the entity associations.
+     *
+     * @example
+     *  $property was `name`
+     *  => []
+     *
+     *  $property was `relatedDummy_name`
+     *  => [
+     *      'relatedDummy' => [
+     *          'property' => 'relatedDummy'
+     *          'metadata' => $metadataOfRelatedDummy
+     *      ]
+     *  ]
+     *
+     *  $property was `relatedDummy_anotherDummy_name`
+     *  => [
+     *      'relatedDummy' => $metadataOfRelatedDummy,
+     *      'relatedDummy_anotherDummy' => $metadataOfAnotherDummy
+     *  ]
+     *  => metadata of anotherDummy
+     *  => [
+     *      'relatedDummy' => [
+     *          'property' => 'relatedDummy'
+     *          'metadata' => $metadataOfRelatedDummy
+     *      ],
+     *      'relatedDummy_anotherDummy' => [
+     *          'property' => 'anotherDummy'
+     *          'metadata' => $metadataOfAnotherDummy
+     *      ]
+     *  ]
+     *
+     * @param string $resourceClass FQCN
+     * @param string $property
+     *
+     * @return ClassMetadata[]
+     */
+    public function getAssociationsMetadataForProperty($resourceClass, $property)
+    {
+        $explodedProperty = $this->propertyExtractor->getExplodedProperty($property);
+        array_pop($explodedProperty);
+
+        $propertySeparator = PropertyExtractor::$separators[0]; //TODO refactor that to use DI instead
+
+        $associationsMetadata = [];
+        foreach ($explodedProperty as $index => $property) {
+            $associationProperty = sprintf('%s%s',
+                implode(
+                    $propertySeparator,
+                    array_slice($explodedProperty, 0, $index + 1)
+                ),
+                $propertySeparator
+            );
+            $associationsMetadata[$associationProperty] = [
+                'property' => $property,
+                'metadata' => $this->getResourceMetadataOfProperty(
+                    $resourceClass,
+                    sprintf('%s%s', $associationProperty, 'someProperty')
+                )
+            ];
+        }
+
+        return $associationsMetadata;
+    }
+
+    /**
      * Gets class metadata for the given class.
      *
      * @param string $class
      *
-     * @return ClassMetadata
+     * @return ClassMetadata|null
      */
     public function getClassMetadata($class)
     {
-        return $this
+        $classManager = $this
             ->managerRegistry
             ->getManagerForClass($class)
-            ->getClassMetadata($class)
         ;
+
+        if (null === $classManager) {
+            return null;
+        }
+
+        return $classManager->getClassMetadata($class);
     }
 
     /**
@@ -138,7 +207,7 @@ class MetadataResolver
      *
      * @param ResourceInterface $resource
      *
-     * @return ClassMetadata
+     * @return ClassMetadata|null
      */
     public function getResourceClassMetadata(ResourceInterface $resource)
     {
