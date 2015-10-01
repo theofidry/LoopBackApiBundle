@@ -18,7 +18,6 @@ use Fidry\LoopBackApiBundle\Filter\OrderFilter;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Class OrderFilterTest.
@@ -72,14 +71,12 @@ class OrderFilterTest extends KernelTestCase
     public function testFilter($properties, $url, $expected)
     {
         $request = Request::create($url, 'GET');
-        $requestStack = $this->prophesize(RequestStack::class);
-        $requestStack->getCurrentRequest()->willReturn($request);
 
-        $filter = new OrderFilter($this->managerRegistry, $requestStack->reveal(), 'order', $properties);
+        $filter = new OrderFilter($this->managerRegistry, 'order', $properties);
         $filter->initParameter('order');
         $queryBuilder = $this->getQueryBuilder();
 
-        $filter->apply($this->resource, $queryBuilder);
+        $filter->apply($this->resource, $queryBuilder, $request);
         $actual = strtolower($queryBuilder->getQuery()->getDQL());
         $expected = ('' === $expected) ?
             strtolower(sprintf('SELECT o FROM %s o', $this->entityClass)) :

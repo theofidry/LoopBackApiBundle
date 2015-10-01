@@ -17,7 +17,7 @@ use Doctrine\ORM\QueryBuilder;
 use Dunglas\ApiBundle\Api\IriConverterInterface;
 use Dunglas\ApiBundle\Api\ResourceInterface;
 use Dunglas\ApiBundle\Doctrine\Orm\Filter\AbstractFilter;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
@@ -43,11 +43,6 @@ class WhereFilter extends AbstractFilter
     const PARAMETER_NULL_VALUE = 'null';
 
     /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
      * @var IriConverterInterface
      */
     private $iriConverter;
@@ -62,14 +57,12 @@ class WhereFilter extends AbstractFilter
      */
     /**
      * @param ManagerRegistry           $managerRegistry
-     * @param RequestStack              $requestStack
      * @param IriConverterInterface     $iriConverter
      * @param PropertyAccessorInterface $propertyAccessor
      * @param null|array                $properties       Null to allow filtering on all properties with the exact strategy or a map of property name with strategy.
      */
     public function __construct(
         ManagerRegistry $managerRegistry,
-        RequestStack $requestStack,
         IriConverterInterface $iriConverter,
         PropertyAccessorInterface $propertyAccessor,
         array $properties = null
@@ -78,18 +71,13 @@ class WhereFilter extends AbstractFilter
 
         $this->iriConverter = $iriConverter;
         $this->propertyAccessor = $propertyAccessor;
-        $this->requestStack = $requestStack;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder)
+    public function apply(ResourceInterface $resource, QueryBuilder $queryBuilder, Request $request)
     {
-        if (null === $request = $this->requestStack->getCurrentRequest()) {
-            return;
-        }
-
         $queryValues = $this->extractProperties($request);
         $metadata = $this->getClassMetadata($resource);
         $fieldNames = array_flip($metadata->getFieldNames());

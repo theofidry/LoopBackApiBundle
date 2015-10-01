@@ -19,7 +19,6 @@ use Fidry\LoopBackApiBundle\Filter\WhereFilter;
 use Symfony\Bridge\Doctrine\Test\DoctrineTestHelper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
@@ -87,12 +86,9 @@ class WhereFilterTest extends KernelTestCase
     public function testFilter($properties, $url, $expected, $parameters = [])
     {
         $request = Request::create($url, 'GET');
-        $requestStack = $this->prophesize(RequestStack::class);
-        $requestStack->getCurrentRequest()->willReturn($request);
 
         $filter = new WhereFilter(
             $this->managerRegistry,
-            $requestStack->reveal(),
             $this->iriConverter,
             $this->propertyAccessor,
             $properties
@@ -100,7 +96,7 @@ class WhereFilterTest extends KernelTestCase
         $filter->initParameter('where');
         $queryBuilder = $this->getQueryBuilder();
 
-        $filter->apply($this->resource, $queryBuilder);
+        $filter->apply($this->resource, $queryBuilder, $request);
         $actual = strtolower($queryBuilder->getQuery()->getDQL());
         $expected = ('' === $expected)
             ? strtolower(sprintf('SELECT o FROM %s o', $this->entityClass))
