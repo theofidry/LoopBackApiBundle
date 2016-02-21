@@ -3,3 +3,4 @@ composer.lock
 tests/Functional/cache/*
 tests/Functional/logs/*
 coverage.xml
+dist/
