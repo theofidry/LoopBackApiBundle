@@ -9,6 +9,7 @@
 
 [LoopBack](http://loopback.io/) like Doctrine ORM filters for [DunglasApiBundle](https://github.com/dunglas/DunglasApiBundle).
 
+**DEPRECATED**: You should use [ApiPlatform Core](https://github.com/api-platform/core) now.
 
 ## Documentation
 
